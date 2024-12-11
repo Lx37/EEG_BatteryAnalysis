@@ -35,6 +35,9 @@ def create_patient_info(sujet, xls_patients_info, protocol, raw_data_dir, data_s
 #    if protocol == 'PP': #TODO : other protocols : LG' / 'Words' / 'Arythmetic'
 #        from batteryEEG import config  as cfg
 
+    if data_fname.endswith('.mff'): # EGI .mff raw data format
+        EEG_system = 'EGI'
+
   
     #create patient_info dictionary
     patient_info = {
@@ -45,6 +48,7 @@ def create_patient_info(sujet, xls_patients_info, protocol, raw_data_dir, data_s
         'data_save_dir': data_save_dir,
         'data_fname': data_fname, 
         'bad_sub_chan': bad_sub_chan, 
+        'EEG_system': EEG_system
         }
 
     return patient_info

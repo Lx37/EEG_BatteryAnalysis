@@ -4,10 +4,11 @@ import os
 import mne
 from getpass import getuser
 
-from batteryEEG import utils
 from batteryEEG import config as cfg
+from batteryEEG import utils
 from batteryEEG import preprocess 
-from batteryEEG import cleaning as cln
+from batteryEEG import cleaning
+from batteryEEG import epoch
 
 ######################################
 ############ Your part ! #############
@@ -48,7 +49,7 @@ epochs_TtP = []
 # create the arborescence for required analysis
 utils.create_arbo(protocol, patient_info, cfg)
 
-'''
+#'''
 print("################## Preprocessing data " + sujet + " ##################")
 
 if patient_info['data_fname'].endswith('.mff'): # EGI .mff raw data format
@@ -56,7 +57,7 @@ if patient_info['data_fname'].endswith('.mff'): # EGI .mff raw data format
 #else:
 #   mircromed #TODO
 #   GTec #TODO
-'''
+#'''
 
 #'''
 print("################## Cleaning data " + sujet + " ##################")
@@ -65,10 +66,16 @@ data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_pat
 data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
 
 data = mne.io.read_raw_fif(data_name, preload=True)
-data = cln.correct_blink_ICA(data, patient_info, cfg, save=save, verbose=verbose, plot=plot) # to test, work, adjust threshold,..
-#'''
-
+data = cleaning.correct_blink_ICA(data, patient_info, cfg, save=save, verbose=verbose, plot=plot) # to test, work, adjust threshold,..
 '''
+
+#'''
 print("################## Epoching data " + sujet + " ##################")
 
-'''
+data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
+data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
+
+data = mne.io.read_raw_fif(data_name, preload=True)
+data = epoch.get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True)
+
+#'''

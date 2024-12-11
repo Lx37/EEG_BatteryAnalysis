@@ -14,32 +14,6 @@ logging.basicConfig(filename=logname,level=logging.INFO, format='%(asctime)s - %
 logger = logging.getLogger(__name__)
 
 
-# ######## Configuration preprocess ########
-
-# prefix_processed = '_preproc.fif'
-
-# # EGI system : chan coordinates are loaded with name 'EEG 001', 'EEG 002',...
-# # so MNE 1.0.0 doesn't found them in the digmontage
-# # this list is use to set same names
-# EGI_chan_names = ['E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'E9', 'E10',
-#                 'E11', 'E12', 'E13', 'E14', 'E15', 'E16', 'E17', 'E18', 'E19', 'E20',
-#                 'E21', 'E22', 'E23', 'E24', 'E25', 'E26', 'E27', 'E28', 'E29', 'E30',
-#                 'E31', 'E32', 'E33', 'E34', 'E35', 'E36', 'E37', 'E38', 'E39', 'E40',
-#                 'E41', 'E42', 'E43', 'E44', 'E45', 'E46', 'E47', 'E48', 'E49', 'E50',
-#                 'E51', 'E52', 'E53', 'E54', 'E55', 'E56', 'E57', 'E58', 'E59', 'E60',
-#                 'E61', 'E62', 'E63', 'E64', 'E65', 'E66', 'E67', 'E68', 'E69', 'E70',
-#                 'E71', 'E72', 'E73', 'E74', 'E75', 'E76', 'E77', 'E78', 'E79', 'E80',
-#                 'E81', 'E82', 'E83', 'E84', 'E85', 'E86', 'E87', 'E88', 'E89', 'E90',
-#                 'E91', 'E92', 'E93', 'E94', 'E95', 'E96', 'E97', 'E98', 'E99', 'E100',
-#                 'E101', 'E102', 'E103', 'E104', 'E105', 'E106', 'E107', 'E108', 'E109', 'E110',
-#                 'E111', 'E112', 'E113', 'E114', 'E115', 'E116', 'E117', 'E118', 'E119', 'E120',
-#                 'E121', 'E122', 'E123', 'E124', 'E125', 'E126', 'E127', 'E128', 'VREF'] #E129
-
-# highpass = 0.1
-# highcut = 45 # TODOLX was 25 for Fabrice
-
-# #######################################################
-
 
 def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
     """
@@ -78,6 +52,7 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
     """
 
     #################### Load data ####################
+    
     print('###### Load data and set montage ######')
     if patient_info['ID_patient'] == 'TT02':
         data = mne.io.read_raw_egi(patient_info['data_fname'], eog=None, misc=None, include=None, preload=True, verbose=None)
@@ -97,6 +72,7 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
     
     data.set_montage(montage)#, raise_if_subset=False) for old MNE 0.19
 
+
     if verbose:
         print('montage : ', montage)
         print(data.info)
@@ -104,6 +80,7 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
         data.plot_sensors(kind='3d')
 
     ############# Set data general info ##############
+    
     #data.info['proj_name'] = cfg.proj_name
     data.info['subject_info'] = {'his_id' : patient_info['ID_patient']}
 
@@ -122,7 +99,8 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
         data.plot(show_options=True, block=True, title='Raw EEG data') # scaling set to eeg=20e-6, eog=150e-6
 
     #################### Filters ####################
-    print('###### Filter data ######')
+    
+    print('###### Filter data and downsample ######')
     # notch filter around 50hz
     picks_eeg = mne.pick_types(data.info, eeg=True)
     data.notch_filter(np.arange(50, 200, 50), picks=picks_eeg, filter_length='auto', phase='zero-double')
@@ -136,9 +114,11 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
         ax.set_title('FFT after filtering for patient ' + patient_info['ID_patient'])
         plt.show()
 
-   
+       # Downsample data
+    data = data.resample(cfg.sfreq)
       
     #################### Set bad chans ####################
+    
     print('###### Set bad chans ######')
     ## Manual check
     if len(patient_info['bad_sub_chan'])==0:
@@ -159,14 +139,13 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
 
     data.info['bads'].extend(['VREF']) # was 'E129'+ ['Cz']
     
-    if plot:
-        data.plot_sensors(kind='3d', ch_type ='eeg', title='Sensor positions, Red ones & Cz are indicated as bads')
-
+  
     logger.info('Bad channels : ,%s', data.info['bads'])
     print('Bad channels : %s for patient %s', data.info['bads'], patient_info['ID_patient'])
 
 
     #################### Interpollation ####################
+    
     print('###### Interpolate bad chans ######') # used only to calculate average ref (for now)
     data.interpolate_bads(reset_bads=False)
     ### Pay ATTENTION! All bad channels are interpolated, this we did to be able to interpolate the Cz channel with only good ones, and is necessary for source reconstruction.
@@ -179,6 +158,7 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
 
   
     # ########### Create HEOG and VEOG chans ###########
+    
     print('###### Create oculars ######')
     chan1 = data.copy().pick_channels(['E25']).get_data()
     chan2 = data.copy().pick_channels(['E127']).get_data()
@@ -202,10 +182,12 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
     
 
     #################### Re-Referencing ####################
+    
     print('###### Re-reference ######')
     data.set_eeg_reference(ref_channels='average', projection=False) # Set EEG average reference
 
     #################### save preprocessed data of interest ####################
+    
     print('###### Save preprocessed data ######')
     
     #Export only data of interest : from first trig -3s to last trig + 3s  
