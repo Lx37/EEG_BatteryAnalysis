@@ -135,7 +135,8 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
         data.plot_psd(ax = ax, area_mode='range', tmax=10.0, picks = picks_psd_plot, average=False, show=False)
         ax.set_title('FFT after filtering for patient ' + patient_info['ID_patient'])
         plt.show()
-        
+
+   
       
     #################### Set bad chans ####################
     print('###### Set bad chans ######')
@@ -177,7 +178,7 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
         data.plot_sensors(kind='3d', ch_type ='eeg', title='Sensory positions, Red ones are indicated as bads ')
 
   
-    ########### Create HEOG and VEOG chans ###########
+    # ########### Create HEOG and VEOG chans ###########
     print('###### Create oculars ######')
     chan1 = data.copy().pick_channels(['E25']).get_data()
     chan2 = data.copy().pick_channels(['E127']).get_data()
@@ -206,11 +207,38 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
 
     #################### save preprocessed data of interest ####################
     print('###### Save preprocessed data ######')
+    
+    #Export only data of interest : from first trig -3s to last trig + 3s  
+    # TODO why last trig +3s??
+    # TODO difference betwen proto ??
+    events = mne.find_events(data, stim_channel='STI 014')
+    event_names = np.zeros((events.shape[0],), dtype='S10') # new array one column of zero's with max lenght of 10 caracters
+
+    for x in range(events.shape[0]): # loop over rows
+        value = events[x, 2] # take each 3th column
+        new_value = [k for k,v in event_id.items() if v==value][0]
+        event_names[x] = new_value
+        good_events = events[(event_names!=b'Rest') & (event_names!=b'Code') & (event_names!=b'star') & (event_names!=b'rest'), :] # all events where names is not 'rest'
+
+    if verbose:
+        print(data.info)
+        print(data.ch_names)
+        print("sfreq : ", sfreq)
+
+    if patient_info['ID_patient'] == 'CB31':  #Generalize ??
+        i_start = 860
+    elif patient_info['ID_patient'] == 'GU32':
+        i_start = 780 #Patient GU32 extra headphone check resulted in triggers before start of protocol!
+    else:
+        i_start = int(good_events[0][0]/data.info['sfreq']-3)
+        i_stop =  int(good_events[-1][0]/data.info['sfreq']+3)
+    
+    
     if save:
         data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
         data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
         print("Saving data : " + data_name)
-        data.save(data_name, overwrite=True)
+        data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
         logger.info("Saved preprocessed data " + data_name)
         ######For EGI subjects, save stimulation name dictionary #######
         nameStimDict =  patient_info['data_save_dir'] + cfg.all_folders_PP['stimDict_path'] 
@@ -220,52 +248,10 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
 
 
     if plot and patient_info['protocol'] != 'Resting':
-        scalings=dict( eeg=20e-6, eog=100e-6, misc=20e-6)
+        scalings=dict(eeg=20e-6, eog=100e-6, misc=20e-6)
         events = mne.find_events(data, stim_channel='STI 014')
         eventplot = mne.viz.plot_events(events, data.info['sfreq'], show=True)
-        plt.show()
-        
-     # Fabrice old code - only for debug
-        #Export only data of interest : from first trig -3s to last trig + 3s
-        # events = mne.find_events(data, stim_channel='STI 014')
-        # event_names = np.zeros((events.shape[0],), dtype='S10') # new array one column of zero's with max lenght of 10 caracters
-
-        # for x in range(events.shape[0]): # loop over rows
-        #     value = events[x, 2] # take each 3th column
-        #     new_value = [k for k,v in event_id.items() if v==value][0]
-        #     event_names[x] = new_value
-        # good_events = events[(event_names!=b'Rest') & (event_names!=b'Code') & (event_names!=b'star') & (event_names!=b'rest'), :] # all events where names is not 'rest'
-
-    #     if verbose:
-    #         print(data.info)
-    #         print(data.ch_names)
-    #         print("sfreq : ", sfreq)
-
-    #     if patient_info['ID_patient'] == 'CB31':  #Generalize ??
-    #         i_start = 860
-    #     elif patient_info['ID_patient'] == 'GU32':
-    #         i_start = 780 #Patient GU32 extra headphone check resulted in triggers before start of protocol!
-    #     else:
-    #         i_start = int(good_events[0][0]/data.info['sfreq']-3)
-    #     i_stop =  int(good_events[-1][0]/data.info['sfreq']+3)
-
-        
-    #     data_name = cfg.data_preproc_path + patient_info['ID_patient'] + cfg.prefix_processed
-    #     print("###################### Saving data : " + data_name)
-    #     data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
-    #     logger.info("Saved preprocessed data " + data_name)
-    #     ######For EGI subjects, save stimulation name dictionary #######
-    #     nameStimDict = cfg.stimDict_path + patient_info['ID_patient'] + cfg.prefix_stimDict ## For the stimuli dictionary (names of stimuli given automatically vs ones we gave the stimuli)
-    #     np.save(nameStimDict, event_id)
-    #     logger.info("Saved stimdict data " + nameStimDict)
-
-
-    # if plot:
-    #     scalings=dict( eeg=20e-6, eog=100e-6, misc=20e-6)
-    #     data.plot(show_options=True, scalings=dict(eeg=20e-6, eog=100e-6),block=True)
-    #     eventplot = mne.viz.plot_events(events, data.info['sfreq'])
-    #     eventplot = mne.viz.plot_events(good_events, data.info['sfreq'])
-        
+        plt.show() 
 
     return data
 
