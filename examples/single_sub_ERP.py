@@ -18,7 +18,7 @@ sujet = 'AD94'
 # Set the parameters for the preprocessing : save data or not, verbose or not, plot or not (True or False)
 save = True
 verbose = True
-plot = False #True
+plot = True
 
 user = getuser()  # Username of the user running the scripts
 
@@ -48,7 +48,7 @@ epochs_TtP = []
 # create the arborescence for required analysis
 utils.create_arbo(protocol, patient_info, cfg)
 
-#'''
+'''
 print("################## Preprocessing data " + sujet + " ##################")
 
 if patient_info['data_fname'].endswith('.mff'): # EGI .mff raw data format
@@ -56,9 +56,9 @@ if patient_info['data_fname'].endswith('.mff'): # EGI .mff raw data format
 #else:
 #   mircromed #TODO
 #   GTec #TODO
-#'''
-
 '''
+
+#'''
 print("################## Cleaning data " + sujet + " ##################")
 
 data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
@@ -66,7 +66,7 @@ data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protoco
 
 data = mne.io.read_raw_fif(data_name, preload=True)
 data = cln.correct_blink_ICA(data, patient_info, cfg, save=save, verbose=verbose, plot=plot) # to test, work, adjust threshold,..
-'''
+#'''
 
 '''
 print("################## Epoching data " + sujet + " ##################")

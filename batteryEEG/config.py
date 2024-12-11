@@ -31,8 +31,8 @@ all_folders_PP = {
 prefix_stimDict = '_event_id.npy'
 prefix_processed = '_preproc.fif'
 prefix_epochs_PPAP = '_PP-epo.fif'
-prefix_ICA = '_ICA.fif'
-prefix_noICA = '_noICA.fif'
+prefix_ICA = '_preproc_ICA.fif'
+prefix_noICA = '_preproc_noICA.fif'
 prefix_autoreject = '_ar.fif'
 prefix_ave = '-erp.fif'
 prefix_grandaverage = 'GrandAverage'
@@ -63,3 +63,19 @@ highpass = 0.1 ## TODOLX was 0.5 for Fabrice
 highcut = 45 # TODOLX was 25 for Fabrice
 
 ###################################################
+######### Configuration for cleaning (ICA) ########
+
+minBlinksICA = 100  #300 for protocol PP Lizette
+eog_threshold = 3
+# For ICA
+n_components = 20 #0.99 from Fabrice  # (instead of 0.95) if float, select n_components by explained variance of PCA
+method = 'fastica'  # for comparison with EEGLAB try "extended-infomax" here
+decim = 2  # we need sufficient statistics, not all time points -> saves time
+random_state = 23
+ica_reject = None
+
+
+###################################################
+##############  Configuration for ERP  ############
+
+#erp_reject = {'eeg': 100e-6, 'eog': 200e-6}
