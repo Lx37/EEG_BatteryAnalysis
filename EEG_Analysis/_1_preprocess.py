@@ -2,7 +2,7 @@ import mne
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from batteryEEG import utils
+from EEG_Analysis import utils
 
 
 ## logging info ###

@@ -1,1 +1,1 @@
-from batteryEEG import *
+from EEG_Analysis import *

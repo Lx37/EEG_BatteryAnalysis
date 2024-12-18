@@ -32,7 +32,7 @@ def correct_blink_ICA(data, patient_info, cfg, save=False, verbose=True, plot=Tr
     			 picks=picks_eog, filter_length='auto', phase='zero-double')
 
     eog_id = 0
-    eog_events = mne.preprocessing.find_eog_events(datacopy, eog_id, verbose = 'DEBUG')
+    eog_events = mne.preprocessing.find_eog_events(datacopy, eog_id, ch_name='VEOGL',verbose = 'DEBUG')
     average_eog = mne.preprocessing.create_eog_epochs(datacopy).average()
     n_blinks = len(eog_events)
 
@@ -41,7 +41,7 @@ def correct_blink_ICA(data, patient_info, cfg, save=False, verbose=True, plot=Tr
 
 
     if plot:
-        data.plot(events=eog_events)
+        data.plot(events=eog_events, title='Show EOG artifacts detection')
         average_eog.plot_joint()
 
     logger.info('Nb blink found : ,%s', n_blinks)
@@ -76,7 +76,7 @@ def correct_blink_ICA(data, patient_info, cfg, save=False, verbose=True, plot=Tr
         logger.info('ICA info = ,%s', ica)
 
         #eog_epochs =  mne.preprocessing.create_eog_epochs(datacopy, reject=AutorejectGlobal)
-        eog_inds, scores = ica.find_bads_eog(datacopy, ch_name=None, threshold=3)
+        eog_inds, scores = ica.find_bads_eog(datacopy, threshold=3) #ch_name='VEOGL' ??
 
         if verbose:
             print("eog_inds : ", eog_inds)
@@ -125,8 +125,126 @@ def correct_blink_ICA(data, patient_info, cfg, save=False, verbose=True, plot=Tr
 
     return data
 
+def correct_blink_ICA2(data, patient_info, cfg, save=False, verbose=True, plot=True):
+    
+    eog_chan = 'VEOGL'
+    
+    eog_epoch = mne.preprocessing.create_eog_epochs(data, ch_name=eog_chan)
+    eog_evoked = eog_epoch.average()
+    eog_evoked.apply_baseline(baseline=(None, -0.2))
+    n_blinks = eog_evoked.nave
+    
+    if verbose:
+        print(f"Number of blink found: {n_blinks}")
 
+    if plot:
+        data.plot(events=eog_epoch.events, title='Show EOG artifacts detection')
+        eog_evoked.plot_joint(title='Show averaged EOG artifacts')
 
+    logger.info('Nb blink found : ,%s', n_blinks)
+    
+    
+    ################ ICA correction ##################
+    if n_blinks >cfg.minBlinksICA:
+    
+        filt_raw = data.copy().filter(l_freq=1.0, h_freq=None)
+    
+        ica = ICA(n_components=15, max_iter="auto", random_state=97)
+        ica.fit(filt_raw)
+    
+        explained_var_ratio = ica.get_explained_variance_ratio(filt_raw)
+        for channel_type, ratio in explained_var_ratio.items():
+            print(f"Fraction of {channel_type} variance explained by all components: {ratio}")
+
+        ica.plot_components()
+    
+        # blinks
+        #ica.plot_overlay(data, exclude=[0,6], picks="eeg")
+        ica.plot_overlay(data, exclude=np.array([0,6]), picks="eeg", title='Plot Overlay')
+        ica.plot_properties(data, picks=slice(0,15,1))
+    
+    
+        # find which ICs match the EOG pattern
+        eog_comp_indices, eog_scores = ica.find_bads_eog(data, ch_name=eog_chan)
+        ica.exclude = eog_comp_indices
+        
+        print('ICA eog_comp_indices : ', eog_comp_indices)
+        print('ica.exclude : ', ica.exclude)
+
+        # barplot of ICA component "EOG match" scores
+        ica.plot_scores(eog_scores)
+
+        # plot diagnostics
+        ica.plot_properties(data, picks=eog_comp_indices)
+
+        # plot ICs applied to raw data, with EOG matches highlighted
+        ica.plot_sources(data, show_scrollbars=False)
+
+        # plot ICs applied to the averaged EOG epochs, with EOG matches highlighted
+        ica.plot_sources(eog_evoked)
+        
+        print('ICA eog_comp_indices : ', eog_comp_indices)
+        print('ica.exclude : ', ica.exclude)
+        
+        if plot:
+            data.plot(events=eog_epoch.events, title="EEG signal before ICA correction")
+        
+        #Apply ICA
+        #ica.exclude.extend(eog_comp_indices)
+        ica.apply(data)#, exclude=eog_comp_indices)
+        logger.info('components excluded = %s',  ica.exclude)
+        
+        if plot:
+            data.plot(events=eog_epoch.events, block=True, title="EEG signal after ICA correction")
+        
+        if save:
+            data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
+            data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
+
+            #data_name = cfg.data_preproc_path + data.info['subject_info']['his_id'] + cfg.prefix_processed.strip('.fif') + cfg.prefix_ICA
+            data.save(data_name, overwrite=True)
+            logger.info('saved ICA data', data_name)
+            return data
+        
+    if save:
+        data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
+        data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_noICA
+
+        #data_name = cfg.data_preproc_path + data.info['subject_info']['his_id'] + cfg.prefix_processed.strip('.fif') + cfg.prefix_noICA
+        data.save(data_name, overwrite=True)
+        logger.info('saved ICA data', data_name)
+
+    return data
+    
+
+def correct_blink_ICA3(data, patient_info, cfg, save=False, verbose=True, plot=True):
+    
+    eog_evoked = mne.preprocessing.create_eog_epochs(data, ch_name='VEOGL').average()
+    print(f"Number of epochs used to calculate evoked: {eog_evoked.nave}")
+    eog_evoked.apply_baseline(baseline=(None, -0.2))
+    eog_evoked.plot_joint()
+    
+    filt_raw = data.copy().filter(l_freq=1.0, h_freq=None)
+    
+    ica = ICA(n_components=15, max_iter="auto", random_state=97)
+    ica.fit(filt_raw)
+    
+    ica.exclude = []
+    # find which ICs match the EOG pattern
+    eog_indices, eog_scores = ica.find_bads_eog(data)
+    ica.exclude = eog_indices
+
+    # barplot of ICA component "EOG match" scores
+    ica.plot_scores(eog_scores)
+
+    # plot diagnostics
+    ica.plot_properties(data, picks=eog_indices)
+
+    # plot ICs applied to raw data, with EOG matches highlighted
+    ica.plot_sources(data, show_scrollbars=False)
+
+    # plot ICs applied to the averaged EOG epochs, with EOG matches highlighted
+    ica.plot_sources(eog_evoked)
 
 def autorejection_epochs(cfg, epochs,fif_fname, protocol, save=False, verbose=True, plot=True):
 

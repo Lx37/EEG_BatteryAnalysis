@@ -15,7 +15,7 @@ from EEG_Analysis import _3_epoch as epoch
 ######################################
 # Indicate the protocol and subject you're working on + data directory and excel file with patients info
 protocol = 'PP' # 'PP' or 'LG' or 'Words' or 'Arythmetic' or 'Resting'
-sujet = 'LC97'#'AD94'
+sujet = 'AD94'
 # Set the parameters for the preprocessing : save data or not, verbose or not, plot or not (True or False)
 save = True
 verbose = True
@@ -59,23 +59,23 @@ if patient_info['data_fname'].endswith('.mff'): # EGI .mff raw data format
 #   GTec #TODO
 '''
 
-#'''
+'''
 print("################## Cleaning data " + sujet + " ##################")
 
 data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
 data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
 
 data = mne.io.read_raw_fif(data_name, preload=True)
-data = cleaning.correct_blink_ICA2(data, patient_info, cfg, save=save, verbose=verbose, plot=plot) # to test, work, adjust threshold,..
-#'''
-
+data = cleaning.correct_blink_ICA(data, patient_info, cfg, save=save, verbose=verbose, plot=plot) # to test, work, adjust threshold,..
 '''
+
+#'''
 print("################## Epoching data " + sujet + " ##################")
 
 data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
 data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
 
 data = mne.io.read_raw_fif(data_name, preload=True)
-data = epoch.get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True)
+data = _3_epoch.get_epochs_connectivity(data, patient_info, cfg, save=True, verbose=True, plot=True)
 
-'''
+#'''
