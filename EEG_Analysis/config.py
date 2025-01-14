@@ -27,6 +27,10 @@ all_folders_PP = {
     'plot_evoked_group_path' : 'PP/evoked_group/'
 }
 
+all_folders_LG = {key: value.replace('PP', 'LG') for key, value in all_folders_PP.items()}
+all_folders_Resting = {key: value.replace('PP', 'Resting') for key, value in all_folders_PP.items()}
+
+
 ##Prefixes - how to name the data after each step
 prefix_stimDict = '_event_id.npy'
 prefix_processed = '_preproc.fif'
@@ -59,6 +63,18 @@ EGI_chan_names = ['E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'E9', 'E10',
                 'E101', 'E102', 'E103', 'E104', 'E105', 'E106', 'E107', 'E108', 'E109', 'E110',
                 'E111', 'E112', 'E113', 'E114', 'E115', 'E116', 'E117', 'E118', 'E119', 'E120',
                 'E121', 'E122', 'E123', 'E124', 'E125', 'E126', 'E127', 'E128', 'VREF'] #E129
+
+#VEOG = veog1 - veog
+occular_EGI = {'veog1':'E25', 'veog2':'E127', 'veogr1':'E8', 'veogr2':'E126', 'heog1':'E32', 'heog2':'E1'}
+#occular_Gtec = ?? {'veog1':'E25', 'veog2':'E127', 'veogr1':'E8', 'veogr2':'E126', 'heog1':'E32', 'heog2':'E1'}
+
+GTec_mapping = {'EEG 001':'FP1', 'EEG 002':'FP2', 'EEG 003':'AF7', 'EEG 004':'AF8', 'EEG 005':'F3',
+                'EEG 006':'Fz', 'EEG 007':'F4', 'EEG 008':'FT7', 'EEG 009':'FT8', 'EEG 010':'FC5', 
+                'EEG 011':'C3', 'EEG 012':'C4', 'EEG 013':'FC6', 'EEG 014':'C5', 'EEG 015':'C1',
+                'EEG 016':'Cz', 'EEG 017':'C2', 'EEG 018':'C6', 'EEG 019':'CP3', 'EEG 020':'CP4',
+                'EEG 021':'CP1', 'EEG 022':'CP2', 'EEG 023':'P7', 'EEG 024':'P3', 'EEG 025':'Pz',
+                'EEG 026':'P4', 'EEG 027':'P8', 'EEG 028':'PO7', 'EEG 029':'PO3', 'EEG 030':'PO4',
+                'EEG 031':'PO8', 'EEG 032':'Oz'}
 
 highpass = 0.1 ## TODOLX was 0.5 for Fabrice
 highcut = 45 # TODOLX was 25 for Fabrice

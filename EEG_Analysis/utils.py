@@ -17,16 +17,24 @@ def create_patient_info(sujet, xls_patients_info, protocol, raw_data_dir, data_s
     #load all patients info from the excel file and get specific patient info
     all_patients_info = load_from_csv(xls_patients_info)
     ID_patient = sujet
-    Name_File_PP = all_patients_info[all_patients_info['ID_patient'] == sujet]['Name_File_PP'].values[0]
-    data_fname = raw_data_dir + sujet + '/EEG/' + Name_File_PP 
-    Bad_Chans_PP =  all_patients_info[all_patients_info['ID_patient'] == sujet]['Bad_Chans_PP'].values[0]
+    
+    print('protocol : ', protocol)
+    
+    if protocol not in ['PP', 'LG', 'Resting']: #TODO : other protocols : LG' / 'Words' / 'Arythmetic'
+        print('la')
+        print('Protocol not recognized. Please choose between PP, LG, Resting')
+        return
+    
+    Name_File = all_patients_info[all_patients_info['ID_patient'] == sujet]['Name_File_' + protocol].values[0]
+    data_fname = raw_data_dir + sujet + '/EEG/' + Name_File 
+    Bad_Chans =  all_patients_info[all_patients_info['ID_patient'] == sujet]['Bad_Chans_' + protocol].values[0]
     # Bad chan should be marqued as E23,E125 in the correspondig excel file (no space!)
     # We need to convert it to a list of strings
     bad_sub_chan = []
-    if len(Bad_Chans_PP)==0:
-        bad_sub_chan = Bad_Chans_PP
+    if len(Bad_Chans)==0:
+        bad_sub_chan = Bad_Chans
     else:
-        chanstring = Bad_Chans_PP.split(",")
+        chanstring = Bad_Chans.split(",")
         for i in range (len(chanstring)):
             bad_sub_chan.append(chanstring[i])
     
@@ -37,6 +45,8 @@ def create_patient_info(sujet, xls_patients_info, protocol, raw_data_dir, data_s
 
     if data_fname.endswith('.mff'): # EGI .mff raw data format
         EEG_system = 'EGI'
+    if data_fname.endswith('.set'):
+        EEG_system = 'Gtec_EEGlab'
 
   
     #create patient_info dictionary
@@ -63,12 +73,23 @@ def create_arbo(protocol, patient_info, cfg):
         print('###### Creating the PP arborescence folders ######')
         for key in cfg.all_folders_PP:
             folder = patient_info['data_save_dir'] + cfg.all_folders_PP[key]
-            #print('folder : ', folder)
             if not os.path.exists(folder):
-                #print('Creating folder : ', folder)
                 os.makedirs(folder)
+    elif protocol == 'LG':
+        print('###### Creating the LG arborescence folders ######')
+        for key in cfg.all_folders_LG:
+            folder = patient_info['data_save_dir'] + cfg.all_folders_LG[key]
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+    elif protocol == 'Resting':
+        print('###### Creating the Resting arborescence folders ######')
+        for key in cfg.all_folders_Resting:
+            folder = patient_info['data_save_dir'] + cfg.all_folders_Resting[key]
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+        
     else:
-        print('Protocol not recognized')
+        print('Protocol not recognized. Please choose between PP, LG, Resting')
         return
 
 

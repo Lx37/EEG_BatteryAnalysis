@@ -8,16 +8,85 @@ from EEG_Analysis import utils
 ## logging info ###
 import logging
 from datetime import datetime
-
 logname = './logs/' + datetime.now().strftime('log_%Y-%m-%d.log')
 logging.basicConfig(filename=logname,level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
+def read_raw(patient_info):
+    print("patient_info['EEG_system'] : ", patient_info['EEG_system'])
+    if patient_info['EEG_system'] == 'EGI':
+        if patient_info['ID_patient'] == 'TT02':
+            data = mne.io.read_raw_egi(patient_info['data_fname'], eog=None, misc=None, include=None, preload=True, verbose=None)
+        else:
+            data = mne.io.read_raw_egi(patient_info['data_fname'], eog=None, misc=None, exclude=None, include=None, preload=True, verbose=None)
 
-def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
+    elif patient_info['EEG_system'] == 'Gtec_EEGlab':
+        data = mne.io.read_raw_eeglab(patient_info['data_fname'], preload=True)
+    #TODO code for micromed
+    else:
+        print('EEG system not recognized for loading data. Please choose between EGI or Gtec_EEGlab')
+        return
+    return data
+
+def set_montage(data, patient_info, cfg, verbose, plot):
+    
+    if patient_info['EEG_system'] == 'EGI':
+        coordinatesfile = patient_info['data_fname'] + '/coordinates.xml'
+        montage = mne.channels.read_dig_egi(coordinatesfile)
+        print('montage loaded ch_names : ', montage.ch_names)
+        montage.ch_names = cfg.EGI_chan_names
+        print('montage new ch_names : ', montage.ch_names)
+        data.set_montage(montage)#, raise_if_subset=False) for old MNE 0.19
+    
+    elif patient_info['EEG_system'] == 'Gtec_EEGlab':
+        coordinatesfile = patient_info['raw_data_dir'] + '/montage modifie_gNautilusPro_JB.xyz'
+        montage = mne.channels.read_custom_montage(coordinatesfile)#, head_size=0.095, coord_frame=None, *, verbose=None)
+        print('montage loaded ch_names : ', montage.ch_names)
+        data.set_channel_types({'EEG 000':'misc','EEG 033':'misc','EEG 034':'misc'})
+        mne.rename_channels(data.info, cfg.GTec_mapping)
+        data.set_montage(montage)
+
+    else:
+        print('EEG system not recognized for loading coordinates. Please choose between EGI or Gtec_EEGlab')
+        return  
+    return data
+
+def create_oculars(data, patient_info, cfg, verbose, plot):
+        
+    if patient_info['EEG_system'] == 'EGI':
+        occular = cfg.occular_EGI
+    #elif patient_info['EEG_system'] == 'Gtec_EEGlab':
+    #    occular = cfg.occular_Gtec
+    else:
+        print('EEG system not recognized for creating oculars. Please choose between EGI or Gtec_EEGlab')
+        return 
+    
+    sfreq = data.info['sfreq']
+    
+    chan1 = data.copy().pick_channels([occular['veog1']]).get_data()
+    chan2 = data.copy().pick_channels([occular['veog2']]).get_data()
+    VEOGL = chan1 - chan2
+    infoVEOGL = mne.create_info(['VEOGL'], sfreq, ['eog'])
+    raw_VEOGL = mne.io.RawArray(VEOGL, infoVEOGL)
+
+    chan1 = data.copy().pick_channels([occular['veogr1']]).get_data()
+    chan2 = data.copy().pick_channels(occular['veogr2']).get_data()
+    VEOGR = chan1 - chan2
+    infoVEOGR = mne.create_info(['VEOGR'], sfreq, ['eog'])
+    raw_VEOGR = mne.io.RawArray(VEOGR, infoVEOGR)
+
+    chan1 = data.copy().pick_channels([occular['heog1']]).get_data()
+    chan2 = data.copy().pick_channels([occular['heog2']]).get_data()
+    HEOG = chan1 - chan2
+    infoHEOG = mne.create_info(['HEOG'], sfreq, ['eog'])
+    raw_HEOG = mne.io.RawArray(HEOG, infoHEOG)
+    
+    return raw_VEOGL, raw_VEOGR, raw_HEOG
+
+def preprocess(patient_info, cfg, save=False, verbose=True, plot=True):
     """
-    Preprocess EEG data from EGI format.
+    Preprocess EEG data from EEGLab format.
     This function performs the following steps:
         - Import data
         - Correct channels (define stim channel and channel type, match names to montage, create Cz, HEOG/VEOG, re-reference, interpolate)
@@ -54,40 +123,29 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
     #################### Load data ####################
     
     print('###### Load data and set montage ######')
-    if patient_info['ID_patient'] == 'TT02':
-        data = mne.io.read_raw_egi(patient_info['data_fname'], eog=None, misc=None, include=None, preload=True, verbose=None)
-    else:
-        data = mne.io.read_raw_egi(patient_info['data_fname'], eog=None, misc=None, exclude=None, include=None, preload=True, verbose=None)
+    data = read_raw(patient_info)
 
     sfreq = data.info['sfreq']
-    event_id = data.event_id
-    print(event_id)
+    if patient_info['protocol'] != 'Resting':
+        event_id = data.event_id
+        print(event_id)
 
     # set montage 
-    coordinatesfile = patient_info['data_fname'] + '/coordinates.xml'
-    montage = mne.channels.read_dig_egi(coordinatesfile)
-    print('montage loaded ch_names : ', montage.ch_names)
-    montage.ch_names = cfg.EGI_chan_names
-    print('montage new ch_names : ', montage.ch_names)
-    
-    data.set_montage(montage)#, raise_if_subset=False) for old MNE 0.19
-
+    data = set_montage(data, patient_info, cfg, verbose, plot)
 
     if verbose:
-        print('montage : ', montage)
         print(data.info)
     if plot:
         data.plot_sensors(kind='3d')
 
     ############# Set data general info ##############
-    
-    #data.info['proj_name'] = cfg.proj_name
     data.info['subject_info'] = {'his_id' : patient_info['ID_patient']}
 
     ################ Channels operations ##############
     # set stim chan type
-    mapping_type = {'STI 014': 'stim'}
-    data.set_channel_types(mapping_type)
+    if patient_info['EEG_system'] == 'EGI':
+        mapping_type = {'STI 014': 'stim'}
+        data.set_channel_types(mapping_type)
 
     logger.info('Raw data info ch_names: ,%s', data.info['ch_names'])
     logger.info('Raw data info channels: ,%s', len(data.info['ch_names']))
@@ -108,14 +166,16 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
     data.filter(cfg.highpass, cfg.highcut, method='fir', phase='zero-double', fir_design='firwin2')
 
     if plot:
-        picks_psd_plot = mne.pick_types(data.info, eeg=True, selection=['E15','E11', 'E55', 'E62','E75', 'E108', 'E45', 'E122', 'E33'])
+        picks_psd_plot = mne.pick_types(data.info, eeg=True)
         fig, ax = plt.subplots(1)
         data.plot_psd(ax = ax, area_mode='range', tmax=10.0, picks = picks_psd_plot, average=False, show=False)
         ax.set_title('FFT after filtering for patient ' + patient_info['ID_patient'])
         plt.show()
 
        # Downsample data
+    print(" data.info['sfreq'] before : ",  data.info['sfreq'])
     data = data.resample(cfg.sfreq)
+    print(" data.info['sfreq'] after : ",  data.info['sfreq'])
       
     #################### Set bad chans ####################
     
@@ -128,18 +188,18 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
 
     ## Manual check to set bad channels and update excel file + patient_info
     datacheck = data.copy()
-    events = mne.find_events(datacheck, stim_channel='STI 014')
-    evoked = mne.Epochs(datacheck, events=events, picks='eeg', tmin=-0.2, tmax=1.2).average()
-    evoked.plot(titles='Global average triggers, any new bad sensors? (the actual bads are not showned) Note them and indicate in next EEG plot')
+    if patient_info['EEG_system'] == 'EGI' and patient_info['protocol'] != 'Resting':
+        events = mne.find_events(datacheck, stim_channel='STI 014')
+        evoked = mne.Epochs(datacheck, events=events, picks='eeg', tmin=-0.2, tmax=1.2).average()
+        evoked.plot(titles='Global average triggers, any new bad sensors? (the actual bads are not showned) Note them and indicate in next EEG plot')
     data.plot(show_options=True, title='Indicate bad sensors manually by a clic on the channel (apears in grey). Greyy one are already defined as bads.', block=True)
     utils.update_excel_bad_chan(patient_info, data.info['bads'])
     patient_info['bad_sub_chan'] = data.info['bads']
 
-    data.set_channel_types({'E8':'misc','E25':'misc','E17':'misc','E126':'misc','E127':'misc'})
-
-    data.info['bads'].extend(['VREF']) # was 'E129'+ ['Cz']
+    if patient_info['EEG_system'] == 'EGI': 
+        data.set_channel_types({'E8':'misc','E25':'misc','E17':'misc','E126':'misc','E127':'misc'})
+        data.info['bads'].extend(['VREF']) # was 'E129'+ ['Cz']
     
-  
     logger.info('Bad channels : ,%s', data.info['bads'])
     print('Bad channels : %s for patient %s', data.info['bads'], patient_info['ID_patient'])
 
@@ -151,34 +211,19 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
     ### Pay ATTENTION! All bad channels are interpolated, this we did to be able to interpolate the Cz channel with only good ones, and is necessary for source reconstruction.
     ### PAY ATTENTION : keep using (for pick_types, epochs etc.) " exclude=[] " otherwise the bads get deleted!
     print(data.info['bads'])
-    data.info['bads'].remove('VREF')
-    print(data.info['bads'])
+    if patient_info['EEG_system'] == 'EGI': 
+        data.info['bads'].remove('VREF')
+        print(data.info['bads'])
     if plot:
         data.plot_sensors(kind='3d', ch_type ='eeg', title='Sensory positions, Red ones are indicated as bads ')
 
-  
+
     # ########### Create HEOG and VEOG chans ###########
     
     print('###### Create oculars ######')
-    chan1 = data.copy().pick_channels(['E25']).get_data()
-    chan2 = data.copy().pick_channels(['E127']).get_data()
-    VEOGL = chan1 - chan2
-    infoVEOGL = mne.create_info(['VEOGL'], sfreq, ['eog'])
-    raw_VEOGL = mne.io.RawArray(VEOGL, infoVEOGL)
-
-    chan1 = data.copy().pick_channels(['E8']).get_data()
-    chan2 = data.copy().pick_channels(['E126']).get_data()
-    VEOGR = chan1 - chan2
-    infoVEOGR = mne.create_info(['VEOGR'], sfreq, ['eog'])
-    raw_VEOGR = mne.io.RawArray(VEOGR, infoVEOGR)
-
-    chan1 = data.copy().pick_channels(['E32']).get_data()
-    chan2 = data.copy().pick_channels(['E1']).get_data()
-    HEOG = chan1 - chan2
-    infoHEOG = mne.create_info(['HEOG'], sfreq, ['eog'])
-    raw_HEOG = mne.io.RawArray(HEOG, infoHEOG)
-
-    data.add_channels([raw_VEOGL, raw_VEOGR], force_update_info=True)  #TODO Only VEOG added for now
+    if patient_info['EEG_system'] == 'EGI': 
+        raw_VEOGL, raw_VEOGR, raw_HEOG = create_oculars(data, patient_info, cfg, verbose, plot)
+        data.add_channels([raw_VEOGL, raw_VEOGR], force_update_info=True)  #TODO Only VEOG added for now
     
 
     #################### Re-Referencing ####################
@@ -191,43 +236,49 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
     print('###### Save preprocessed data ######')
     
     #Export only data of interest : from first trig -3s to last trig + 3s  
+    # Helps for ICA !!! Because of nasty signal before first and after last trigger
     # TODO why last trig +3s??
     # TODO difference betwen proto ??
-    events = mne.find_events(data, stim_channel='STI 014')
-    event_names = np.zeros((events.shape[0],), dtype='S10') # new array one column of zero's with max lenght of 10 caracters
-
-    for x in range(events.shape[0]): # loop over rows
-        value = events[x, 2] # take each 3th column
-        new_value = [k for k,v in event_id.items() if v==value][0]
-        event_names[x] = new_value
-        good_events = events[(event_names!=b'Rest') & (event_names!=b'Code') & (event_names!=b'star') & (event_names!=b'rest'), :] # all events where names is not 'rest'
-
-    if verbose:
-        print(data.info)
-        print(data.ch_names)
-        print("sfreq : ", sfreq)
-
-    if patient_info['ID_patient'] == 'CB31':  #Generalize ??
-        i_start = 860
-    elif patient_info['ID_patient'] == 'GU32':
-        i_start = 780 #Patient GU32 extra headphone check resulted in triggers before start of protocol!
-    else:
-        i_start = int(good_events[0][0]/data.info['sfreq']-3)
-        i_stop =  int(good_events[-1][0]/data.info['sfreq']+3)
     
+    if patient_info['protocol'] != 'Resting':
+        events = mne.find_events(data, stim_channel='STI 014')
+        event_names = np.zeros((events.shape[0],), dtype='S10') # new array one column of zero's with max lenght of 10 caracters
+
+        for x in range(events.shape[0]): # loop over rows
+            value = events[x, 2] # take each 3th column
+            new_value = [k for k,v in event_id.items() if v==value][0]
+            event_names[x] = new_value
+            good_events = events[(event_names!=b'Rest') & (event_names!=b'Code') & (event_names!=b'star') & (event_names!=b'rest'), :] # all events where names is not 'rest'
+
+        if verbose:
+            print(data.info)
+            print(data.ch_names)
+            print("sfreq : ", sfreq)
+
+        if patient_info['ID_patient'] == 'CB31':  #Generalize ??
+            i_start = 860
+        elif patient_info['ID_patient'] == 'GU32':
+            i_start = 780 #Patient GU32 extra headphone check resulted in triggers before start of protocol!
+        else:
+            i_start = int(good_events[0][0]/data.info['sfreq']-3)
+            i_stop =  int(good_events[-1][0]/data.info['sfreq']+3)
+        
     
     if save:
         data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
         data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
         print("Saving data : " + data_name)
-        data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
+        if patient_info['protocol'] != 'Resting':
+            data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
+            if patient_info['EEG_system'] == 'EGI': 
+                ######For EGI subjects, save stimulation name dictionary #######
+                nameStimDict =  patient_info['data_save_dir'] + cfg.all_folders_PP['stimDict_path'] 
+                nameStimDict = nameStimDict + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_stimDict ## For the stimuli dictionary (names of stimuli given automatically vs ones we gave the stimuli)
+                np.save(nameStimDict, event_id)
+                logger.info("Saved stimdict data " + nameStimDict)
+        else:
+            data.save(data_name, overwrite=True)
         logger.info("Saved preprocessed data " + data_name)
-        ######For EGI subjects, save stimulation name dictionary #######
-        nameStimDict =  patient_info['data_save_dir'] + cfg.all_folders_PP['stimDict_path'] 
-        nameStimDict = nameStimDict + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_stimDict ## For the stimuli dictionary (names of stimuli given automatically vs ones we gave the stimuli)
-        np.save(nameStimDict, event_id)
-        logger.info("Saved stimdict data " + nameStimDict)
-
 
     if plot and patient_info['protocol'] != 'Resting':
         scalings=dict(eeg=20e-6, eog=100e-6, misc=20e-6)
@@ -236,6 +287,7 @@ def preprocess_mff(patient_info, cfg, save=False, verbose=True, plot=True):
         plt.show() 
 
     return data
+
 
 
 
