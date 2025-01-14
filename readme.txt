@@ -1,9 +1,13 @@
-# BatteryEEG
+# Baking_EEG
 
-BatteryEEG is a project designed to analyze EEG signals from different types 
+Your Recipe for EEG Insights!
+and prepping your EEG for Scientific Gourmet.
+
+Baking_EEG is a project designed to analyze EEG signals from different types 
 of evoked potential protocols. This project supports multiple acquisition 
 systems, including BrainAmp, EGI, and Micromed. It allows for analyses at 
 different levels, including individual and group analyses.
+
 
 ## Features
 

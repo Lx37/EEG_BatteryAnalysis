@@ -1,14 +1,14 @@
 import sys
-sys.path.append('/home/tkz/Projets/FPerrin_FFerre_2024_BatteryAnalyseEEG_CAP/EEG_Analysis')
+sys.path.append('/home/tkz/Projets/0_FPerrin_FFerre_2024_Baking_EEG_CAP/Baking_EEG')
 import os
 import mne
 from getpass import getuser
 
-from EEG_Analysis import config as cfg
-from EEG_Analysis import utils
-from EEG_Analysis import _1_preprocess as prepro
-from EEG_Analysis import _2_cleaning as cleaning
-from EEG_Analysis import _3_epoch as epoch
+from Baking_EEG import config as cfg
+from Baking_EEG import utils
+from Baking_EEG import _1_preprocess as prepro
+from Baking_EEG import _2_cleaning as cleaning
+from Baking_EEG import _3_epoch as epoch
 
 ######################################
 ############ Your part ! #############
@@ -27,9 +27,9 @@ if user == 'tkz':
     # where the data are stored
     raw_data_dir = '/home/tkz/Projets/data/data_JB-montpellier/'
     # excel file with all patients info
-    xls_patients_info = '/home/tkz/Projets/FPerrin_FFerre_2024_BatteryAnalyseEEG_CAP/JB-Montpellier_patients_df.csv'
+    xls_patients_info = '/home/tkz/Projets/0_FPerrin_FFerre_2024_Baking_EEG_CAP/JB-Montpellier_patients_df.csv'
     # path to save the analyzed data
-    data_save_dir = '/home/tkz/Projets/FPerrin_FFerre_2024_BatteryAnalyseEEG_CAP/EEG_Analysis_data_JB/'
+    data_save_dir = '/home/tkz/Projets/0_FPerrin_FFerre_2024_Baking_EEG_CAP/Baking_EEG_data_JB/'
 
 
 ######################################
