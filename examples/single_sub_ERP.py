@@ -1,8 +1,13 @@
+from getpass import getuser
+user = getuser()  # Username of the user running the scripts
+print('User is:', user)
 import sys
-sys.path.append('/home/tkz/Projets/0_FPerrin_FFerre_2024_Baking_EEG_CAP/Baking_EEG')
+if user == 'tkz':
+    sys.path.append('/home/tkz/Projets/0_FPerrin_FFerre_2024_Baking_EEG_CAP/Baking_EEG')
+if user == 'adminlocal':    
+    sys.path.append('C:\\Users\\adminlocal\\Desktop\\ConnectDoc\\EEG_2025_CAP_FPerrin_Vera\\Baking_EEG')
 import os
 import mne
-from getpass import getuser
 
 from Baking_EEG import config as cfg
 from Baking_EEG import utils
@@ -15,13 +20,11 @@ from Baking_EEG import _3_epoch as epoch
 ######################################
 # Indicate the protocol and subject you're working on + data directory and excel file with patients info
 protocol = 'PP' # 'PP' or 'LG' or 'Words' or 'Arythmetic' or 'Resting'
-sujet = 'LC97'#'AD94'
+sujet = 'AG42'#'AD94' #LC97
 # Set the parameters for the preprocessing : save data or not, verbose or not, plot or not (True or False)
 save = True
 verbose = True
 plot = True
-
-user = getuser()  # Username of the user running the scripts
 
 if user == 'tkz':
     # where the data are stored
@@ -30,6 +33,13 @@ if user == 'tkz':
     xls_patients_info = '/home/tkz/Projets/0_FPerrin_FFerre_2024_Baking_EEG_CAP/ConnectDoc_patients_df.csv'
     # path to save the analyzed data
     data_save_dir = '/home/tkz/Projets/0_FPerrin_FFerre_2024_Baking_EEG_CAP/Baking_EEG_data/'
+if user == 'adminlocal':
+    # where the data are stored
+    raw_data_dir = 'C:\\Users\\adminlocal\\Desktop\\ConnectDoc\\Data\\data_EEG_battery_2019-\\'
+    # excel file with all patients info
+    xls_patients_info = 'C:\\Users\\adminlocal\\Desktop\\ConnectDoc\\EEG_2025_CAP_FPerrin_Vera\\ConnectDoc_patients_df.csv'
+    # path to save the analyzed data
+    data_save_dir = 'C:\\Users\\adminlocal\\Desktop\\ConnectDoc\\EEG_2025_CAP_FPerrin_Vera\\Analysis_Baking_EEG_Vera\\'
 
 
 ######################################
@@ -49,13 +59,13 @@ epochs_TtP = []
 # create the arborescence for required analysis
 utils.create_arbo(protocol, patient_info, cfg)
 
-'''
+#'''
 print("################## Preprocessing data " + sujet + " ##################")
 
 data = prepro.preprocess(patient_info, cfg, save, verbose, plot)
 
 
-#'''
+'''
 print("################## Cleaning data " + sujet + " ##################")
 
 data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
