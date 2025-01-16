@@ -3,6 +3,7 @@ import pandas as pd
 import platform
 import mne
 import os
+import sys
 
 
 
@@ -18,12 +19,16 @@ def create_patient_info(sujet, xls_patients_info, protocol, raw_data_dir, data_s
     all_patients_info = load_from_csv(xls_patients_info)
     ID_patient = sujet
     
-    print('protocol : ', protocol)
+    print('Patient: ', ID_patient)
+    print('Protocol : ', protocol)
     
     if protocol not in ['PP', 'LG', 'Resting']: #TODO : other protocols : LG' / 'Words' / 'Arythmetic'
-        print('la')
-        print('Protocol not recognized. Please choose between PP, LG, Resting')
-        return
+        print("Protocol not recognized. Please choose between 'PP', 'LG', 'Resting'")
+        sys.exit()
+    
+    if sujet not in all_patients_info['ID_patient'].values:
+        print(f"Patient {sujet} not found in the provided XLS patient information.")
+        sys.exit()
     
     Name_File = all_patients_info[all_patients_info['ID_patient'] == sujet]['Name_File_' + protocol].values[0]
     data_fname = raw_data_dir + sujet + '/EEG/' + Name_File 

@@ -39,7 +39,6 @@ def correct_blink_ICA(data, patient_info, cfg, save=False, verbose=True, plot=Tr
     if verbose:
         print('Nb blink found : ', n_blinks)
 
-
     if plot:
         data.plot(events=eog_events, title='Show EOG artifacts detection')
         average_eog.plot_joint()
@@ -162,7 +161,6 @@ def correct_blink_ICA2(data, patient_info, cfg, save=False, verbose=True, plot=T
         #ica.plot_overlay(data, exclude=[0,6], picks="eeg")
         ica.plot_overlay(data, exclude=np.array([0,6]), picks="eeg", title='Plot Overlay')
         ica.plot_properties(data, picks=slice(0,15,1))
-    
     
         # find which ICs match the EOG pattern
         eog_comp_indices, eog_scores = ica.find_bads_eog(data, ch_name=eog_chan)

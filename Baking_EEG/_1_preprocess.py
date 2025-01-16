@@ -71,7 +71,7 @@ def create_oculars(data, patient_info, cfg, verbose, plot):
     raw_VEOGL = mne.io.RawArray(VEOGL, infoVEOGL)
 
     chan1 = data.copy().pick_channels([occular['veogr1']]).get_data()
-    chan2 = data.copy().pick_channels(occular['veogr2']).get_data()
+    chan2 = data.copy().pick_channels([occular['veogr2']]).get_data()
     VEOGR = chan1 - chan2
     infoVEOGR = mne.create_info(['VEOGR'], sfreq, ['eog'])
     raw_VEOGR = mne.io.RawArray(VEOGR, infoVEOGR)

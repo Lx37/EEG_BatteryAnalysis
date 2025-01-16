@@ -20,7 +20,7 @@ from Baking_EEG import _3_epoch as epoch
 ######################################
 # Indicate the protocol and subject you're working on + data directory and excel file with patients info
 protocol = 'PP' # 'PP' or 'LG' or 'Words' or 'Arythmetic' or 'Resting'
-sujet = 'AG42'#'AD94' #LC97
+sujet = 'AD94'#'AD94' #LC97 #AG42
 # Set the parameters for the preprocessing : save data or not, verbose or not, plot or not (True or False)
 save = True
 verbose = True
@@ -51,6 +51,7 @@ print('MNE VERSION : ', mne.__version__)
 
 # create the patient_info object (with names, config, protocol, file name, bad channels, etc.)
 patient_info = utils.create_patient_info(sujet, xls_patients_info, protocol, raw_data_dir, data_save_dir)
+print('patient_info : ', patient_info)
 
 data = []
 epochs = []
@@ -59,11 +60,12 @@ epochs_TtP = []
 # create the arborescence for required analysis
 utils.create_arbo(protocol, patient_info, cfg)
 
-#'''
+'''
 print("################## Preprocessing data " + sujet + " ##################")
 
 data = prepro.preprocess(patient_info, cfg, save, verbose, plot)
 
+print("################## End of Preprocess ##################")
 
 '''
 print("################## Cleaning data " + sujet + " ##################")
