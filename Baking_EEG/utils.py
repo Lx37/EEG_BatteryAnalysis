@@ -44,9 +44,6 @@ def create_patient_info(sujet, xls_patients_info, protocol, raw_data_dir, data_s
             bad_sub_chan.append(chanstring[i])
     
     #print('bad_sub_chan : ', bad_sub_chan)
-  
-#    if protocol == 'PP': #TODO : other protocols : LG' / 'Words' / 'Arythmetic'
-#        from batteryEEG import config  as cfg
 
     if data_fname.endswith('.mff'): # EGI .mff raw data format
         EEG_system = 'EGI'

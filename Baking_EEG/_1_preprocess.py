@@ -143,7 +143,7 @@ def preprocess(patient_info, cfg, save=False, verbose=True, plot=True):
 
     ################ Channels operations ##############
     # set stim chan type
-    if patient_info['EEG_system'] == 'EGI':
+    if patient_info['EEG_system'] == 'EGI' and patient_info['protocol'] != 'Resting':
         mapping_type = {'STI 014': 'stim'}
         data.set_channel_types(mapping_type)
 
