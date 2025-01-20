@@ -8,7 +8,7 @@ import sys
 
 
 def load_from_csv(csv_path):
-    df = pd.read_csv(csv_path ,sep=",", keep_default_na=False) # was sep=","
+    df = pd.read_csv(csv_path, sep=",", keep_default_na=False) # was sep=","
     return df
 
 
