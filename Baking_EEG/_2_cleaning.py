@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def correct_blink_ICA(data, patient_info, cfg, save=False, verbose=True, plot=True):
     '''
     This function tries to removes blink artefacts from preprocessed data.
-    Indeed, data needs to be clean and cuted to relevant to improve the removal.
+    Indeed, data needs to be clean and cut to relevant to improve the removal.
     the method used is based on ICA projection where we remove the blink composante.
     All the difficulty is to get the purest blink composant !
     This is a first working version - feel free to improve it !

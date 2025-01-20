@@ -28,6 +28,7 @@ def read_raw(patient_info):
         print('EEG system not recognized for loading data. Please choose between EGI or Gtec_EEGlab')
         return
     return data
+#determines the type of EEG system used; if not supported, exits
 
 def set_montage(data, patient_info, cfg, verbose, plot):
     
@@ -46,13 +47,13 @@ def set_montage(data, patient_info, cfg, verbose, plot):
         data.set_channel_types({'EEG 000':'misc','EEG 033':'misc','EEG 034':'misc'})
         mne.rename_channels(data.info, cfg.GTec_mapping)
         data.set_montage(montage)
-
+#processing signal differently depending on the signal source + loads the correct montage
     else:
         print('EEG system not recognized for loading coordinates. Please choose between EGI or Gtec_EEGlab')
         return  
     return data
 
-def create_oculars(data, patient_info, cfg, verbose, plot):
+def create_oculars(data, patient_info, cfg, verbose, plot): #function just for ocular mov
         
     if patient_info['EEG_system'] == 'EGI':
         occular = cfg.occular_EGI
@@ -66,7 +67,7 @@ def create_oculars(data, patient_info, cfg, verbose, plot):
     
     chan1 = data.copy().pick_channels([occular['veog1']]).get_data()
     chan2 = data.copy().pick_channels([occular['veog2']]).get_data()
-    VEOGL = chan1 - chan2
+    VEOGL = chan1 - chan2 #vetical ocular signal is diff between 2 specific channels
     infoVEOGL = mne.create_info(['VEOGL'], sfreq, ['eog'])
     raw_VEOGL = mne.io.RawArray(VEOGL, infoVEOGL)
 
@@ -82,7 +83,7 @@ def create_oculars(data, patient_info, cfg, verbose, plot):
     infoHEOG = mne.create_info(['HEOG'], sfreq, ['eog'])
     raw_HEOG = mne.io.RawArray(HEOG, infoHEOG)
     
-    return raw_VEOGL, raw_VEOGR, raw_HEOG
+    return raw_VEOGL, raw_VEOGR, raw_HEOG #vertical mov of each eye + horizontal of both
 
 def preprocess(patient_info, cfg, save=False, verbose=True, plot=True):
     """
@@ -128,8 +129,7 @@ def preprocess(patient_info, cfg, save=False, verbose=True, plot=True):
     sfreq = data.info['sfreq']
     if patient_info['protocol'] != 'Resting':
         event_id = data.event_id
-        print(event_id)
-
+        print(event_id) #if not resting stqte, then functions prints conditions of the protocol
     # set montage 
     data = set_montage(data, patient_info, cfg, verbose, plot)
 
@@ -189,14 +189,14 @@ def preprocess(patient_info, cfg, save=False, verbose=True, plot=True):
     ## Manual check to set bad channels and update excel file + patient_info
     datacheck = data.copy()
     if patient_info['EEG_system'] == 'EGI' and patient_info['protocol'] != 'Resting':
-        events = mne.find_events(datacheck, stim_channel='STI 014')
+        events = mne.find_events(datacheck, stim_channel='STI 014') #stimulus channel
         evoked = mne.Epochs(datacheck, events=events, picks='eeg', tmin=-0.2, tmax=1.2).average()
         evoked.plot(titles='Global average triggers, any new bad sensors? (the actual bads are not showned) Note them and indicate in next EEG plot')
     data.plot(show_options=True, title='Indicate bad sensors manually by a clic on the channel (apears in grey). Greyy one are already defined as bads.', block=True)
     utils.update_excel_bad_chan(patient_info, data.info['bads'])
     patient_info['bad_sub_chan'] = data.info['bads']
 
-    if patient_info['EEG_system'] == 'EGI': 
+    if patient_info['EEG_system'] == 'EGI': #exclusion of non-analysed channels
         data.set_channel_types({'E8':'misc','E25':'misc','E17':'misc','E126':'misc','E127':'misc'})
         data.info['bads'].extend(['VREF']) # was 'E129'+ ['Cz']
     
