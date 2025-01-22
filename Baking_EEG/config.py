@@ -88,7 +88,7 @@ sfreq = 250
 minBlinksICA = 100  #300 for protocol PP Lizette
 eog_threshold = 3
 # For ICA
-n_components = 0.95 #20 #0.99 from Fabrice  # (instead of 0.95) if float, select n_components by explained variance of PCA
+n_components = 0.95 #15 was ok #0.99 from Fabrice  # (instead of 0.95) if float, select n_components by explained variance of PCA
 method = 'fastica'  # for comparison with EEGLAB try "extended-infomax" here
 decim = 2  # we need sufficient statistics, not all time points -> saves time
 random_state = 23

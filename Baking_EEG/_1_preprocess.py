@@ -193,7 +193,10 @@ def preprocess(patient_info, cfg, save=False, verbose=True, plot=True):
         evoked = mne.Epochs(datacheck, events=events, picks='eeg', tmin=-0.2, tmax=1.2).average()
         evoked.plot(titles='Global average triggers, any new bad sensors? (the actual bads are not showned) Note them and indicate in next EEG plot')
     data.plot(show_options=True, title='Indicate bad sensors manually by a clic on the channel (apears in grey). Greyy one are already defined as bads.', block=True)
-    utils.update_excel_bad_chan(patient_info, data.info['bads'])
+    try:
+        utils.update_excel_bad_chan(patient_info, data.info['bads'])
+    except:
+        print("No way to update excel file with bad channels. Maybe you're on windows and the file is open?")  
     patient_info['bad_sub_chan'] = data.info['bads']
 
     if patient_info['EEG_system'] == 'EGI': #exclusion of non-analysed channels

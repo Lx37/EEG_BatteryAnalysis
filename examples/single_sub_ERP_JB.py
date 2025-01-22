@@ -66,7 +66,7 @@ data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_pat
 data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
 
 data = mne.io.read_raw_fif(data_name, preload=True)
-data = cleaning.correct_blink_ICA2(data, patient_info, cfg, save=save, verbose=verbose, plot=plot) # to test, work, adjust threshold,..
+data = cleaning.correct_blink_ICA(data, patient_info, cfg, save=save, verbose=verbose, plot=plot) # to test, work, adjust threshold,..
 '''
 
 '''

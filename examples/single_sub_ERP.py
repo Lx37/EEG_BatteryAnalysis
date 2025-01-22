@@ -20,7 +20,7 @@ from Baking_EEG import _3_epoch as epoch
 ######################################
 # Indicate the protocol and subject you're working on + data directory and excel file with patients info
 protocol = 'PP' # 'PP' or 'LG' or 'Words' or 'Arythmetic' or 'Resting'
-sujet = 'TpLC21J1'#'AD94' #LC97 #AG42
+sujet = 'AD94'#'AD94' #LC97 #AG42
 # Set the parameters for the preprocessing : save data or not, verbose or not, plot or not (True or False)
 save = True
 verbose = True
@@ -73,7 +73,7 @@ data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_pat
 data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
 
 data = mne.io.read_raw_fif(data_name, preload=True)
-data = cleaning.correct_blink_ICA2(data, patient_info, cfg, save=save, verbose=verbose, plot=plot) # to test, work, adjust threshold,..
+data = cleaning.correct_blink_ICA(data, patient_info, cfg, save=save, verbose=verbose, plot=plot) # to test, work, adjust threshold,..
 #'''
 
 '''

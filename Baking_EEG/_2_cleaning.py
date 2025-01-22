@@ -18,113 +18,6 @@ logger = logging.getLogger(__name__)
 
 
 def correct_blink_ICA(data, patient_info, cfg, save=False, verbose=True, plot=True):
-    '''
-    This function tries to removes blink artefacts from preprocessed data.
-    Indeed, data needs to be clean and cut to relevant to improve the removal.
-    the method used is based on ICA projection where we remove the blink composante.
-    All the difficulty is to get the purest blink composant !
-    This is a first working version - feel free to improve it !
-    '''
-
-    picks_eog = mne.pick_types(data.info, eog=True)
-    datacopy = data.copy()
-    datacopy.filter(1, 10, n_jobs=1, l_trans_bandwidth='auto', h_trans_bandwidth='auto',
-    			 picks=picks_eog, filter_length='auto', phase='zero-double')
-
-    eog_id = 0
-    eog_events = mne.preprocessing.find_eog_events(datacopy, eog_id, ch_name='VEOGL',verbose = 'DEBUG')
-    average_eog = mne.preprocessing.create_eog_epochs(datacopy).average()
-    n_blinks = len(eog_events)
-
-    if verbose:
-        print('Nb blink found : ', n_blinks)
-
-    if plot:
-        data.plot(events=eog_events, title='Show EOG artifacts detection')
-        average_eog.plot_joint()
-
-    logger.info('Nb blink found : ,%s', n_blinks)
-
-    ################ ICA correction ##################
-    if n_blinks >cfg.minBlinksICA:
-        logger.info('Too many blinks ICA performed')
-        ica = ICA(n_components=cfg.n_components,method=cfg.method, random_state=cfg.random_state)#, fit_params=dict(extended=True)
-        #ica = ICA(n_components=None,method=cfg.method, random_state=cfg.random_state)#, fit_params=dict(extended=True)
-        #print(ica)
-
-        picks = mne.pick_types(datacopy.info, meg=False, eeg=True, eog=False, stim=False, exclude='bads')
-
-
-        ###Autorejection (global)###
-        #ICA solutions can be affected by high amplitude artifacts, therefore we recommend to determine
-        # a reasonable rejection threshold on which data segments to ignore in the ICA. autoreject (global)
-        # can be used exactly for this purpose
-        #In case you want to fit your ICA on the raw data, you will need an intermediate step, because autoreject only works on epoched data.
-        # ICA is ignoring the time domain of the data, so we can simply turn the raw data into equally spaced “fixed length” epochs using ::func::mne.make_fixed_length_events:
-        #tstep = 1.0
-        ##autorejectEvents = mne.make_fixed_length_events(datacopy, duration=tstep)
-        #autorejectEpochs = mne.Epochs(datacopy, autorejectEvents, tmin=0.0, tmax=tstep,baseline=(0, 0))
-        #AutorejectGlobal = get_rejection_threshold(autorejectEpochs)
-        #print(' AutorejectGlobal : ' , AutorejectGlobal)
-
-        ica.fit(datacopy, picks=picks)#, reject=AutorejectGlobal, tstep=tstep) #decim=cfg.decim,
-        if verbose:
-            print(ica)
-        if plot:
-            ica.plot_components()
-        logger.info('ICA info = ,%s', ica)
-
-        #eog_epochs =  mne.preprocessing.create_eog_epochs(datacopy, reject=AutorejectGlobal)
-        eog_inds, scores = ica.find_bads_eog(datacopy, threshold=3) #ch_name='VEOGL' ??
-
-        if verbose:
-            print("eog_inds : ", eog_inds)
-            print("scores : ", scores)
-        logger.info("eog_inds : ,%s", eog_inds)
-
-        if not eog_inds:
-            print("No eog_inds, need to choose manually")
-            ica.plot_sources(datacopy, block=True)
-            #eog_inds = ica.exclude
-            #print("eog_inds chosen manually: ", eog_inds)
-        elif eog_inds:
-            #ica.plot_components()
-            if plot:
-                ica.plot_scores(scores, exclude=eog_inds)
-                ica.plot_sources(average_eog)#, exclude=eog_inds)
-                title = 'Sources related to %s artifacts (red)'
-                ica.plot_properties(datacopy, picks=eog_inds, psd_args={'fmax': 35.},
-                                image_args={'sigma': 1.})
-
-
-        ica.exclude.extend(eog_inds)
-        if plot:
-            data.plot(events=eog_events)
-            ica.plot_sources(datacopy, block=True)
-            ica.plot_overlay(average_eog, exclude=eog_inds, show=False)
-        ica.apply(data, exclude=eog_inds)
-        if plot:
-            data.plot(events=eog_events, block=True)
-        if save:
-            data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
-            data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
-
-            #data_name = cfg.data_preproc_path + data.info['subject_info']['his_id'] + cfg.prefix_processed.strip('.fif') + cfg.prefix_ICA
-            data.save(data_name, overwrite=True)
-            logger.info('saved ICA data', data_name)
-            return data
-        logger.info('components excluded = %s', eog_inds)
-    if save:
-        data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
-        data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_noICA
-
-        #data_name = cfg.data_preproc_path + data.info['subject_info']['his_id'] + cfg.prefix_processed.strip('.fif') + cfg.prefix_noICA
-        data.save(data_name, overwrite=True)
-        logger.info('saved ICA data', data_name)
-
-    return data
-
-def correct_blink_ICA2(data, patient_info, cfg, save=False, verbose=True, plot=True):
     
     data.plot(block=True, title='Show preprocessed EEG to see if there is ocular events')
 
@@ -150,7 +43,7 @@ def correct_blink_ICA2(data, patient_info, cfg, save=False, verbose=True, plot=T
     
         filt_raw = data.copy().filter(l_freq=1.0, h_freq=None)
     
-        ica = ICA(n_components=15, max_iter="auto", random_state=97)
+        ica = ICA(n_components=cfg.n_components, max_iter="auto", random_state=97)
         ica.fit(filt_raw)
     
         explained_var_ratio = ica.get_explained_variance_ratio(filt_raw)
@@ -162,7 +55,7 @@ def correct_blink_ICA2(data, patient_info, cfg, save=False, verbose=True, plot=T
         # blinks
         #ica.plot_overlay(data, exclude=[0,6], picks="eeg")
         ica.plot_overlay(data, exclude=np.array([0,6]), picks="eeg", title='Plot Overlay')
-        ica.plot_properties(data, picks=slice(0,15,1))
+        #ica.plot_properties(data, picks=slice(0,15,1))
     
         # find which ICs match the EOG pattern
         eog_comp_indices, eog_scores = ica.find_bads_eog(data, ch_name=eog_chan)
@@ -174,14 +67,16 @@ def correct_blink_ICA2(data, patient_info, cfg, save=False, verbose=True, plot=T
         # barplot of ICA component "EOG match" scores
         ica.plot_scores(eog_scores)
 
-        # plot diagnostics
-        ica.plot_properties(data, picks=eog_comp_indices)
-
         # plot ICs applied to raw data, with EOG matches highlighted
-        ica.plot_sources(data, show_scrollbars=False)
+        # possibility in this plot to select/unselect ICs
+        ica.plot_sources(data, show_scrollbars=False, block=True, title="Sources over time. Please select / unselect the ones you want to remove")
 
         # plot ICs applied to the averaged EOG epochs, with EOG matches highlighted
         ica.plot_sources(eog_evoked)
+        
+        # plot diagnostics
+        #if ica.exclude != []:
+        #    ica.plot_properties(data)
         
         print('ICA eog_comp_indices : ', eog_comp_indices)
         print('ica.exclude : ', ica.exclude)
@@ -197,7 +92,7 @@ def correct_blink_ICA2(data, patient_info, cfg, save=False, verbose=True, plot=T
         if plot:
             data.plot(events=eog_epoch.events, block=True, title="EEG signal after ICA correction")
         
-        if save:
+        if save and ica.exclude!= []:
             data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
             data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
 
@@ -205,7 +100,13 @@ def correct_blink_ICA2(data, patient_info, cfg, save=False, verbose=True, plot=T
             data.save(data_name, overwrite=True)
             logger.info('saved ICA data', data_name)
             return data
+        else:
+            print('ICA not saved as no components were excluded')
+    else:
+        print('Not enough blinks found to perform ICA')
+        exit()
         
+    '''
     if save:
         data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
         data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_noICA
@@ -213,39 +114,10 @@ def correct_blink_ICA2(data, patient_info, cfg, save=False, verbose=True, plot=T
         #data_name = cfg.data_preproc_path + data.info['subject_info']['his_id'] + cfg.prefix_processed.strip('.fif') + cfg.prefix_noICA
         data.save(data_name, overwrite=True)
         logger.info('saved ICA data', data_name)
+    '''
 
     return data
     
-
-def correct_blink_ICA3(data, patient_info, cfg, save=False, verbose=True, plot=True):
-    
-    eog_evoked = mne.preprocessing.create_eog_epochs(data, ch_name='VEOGL').average()
-    print(f"Number of epochs used to calculate evoked: {eog_evoked.nave}")
-    eog_evoked.apply_baseline(baseline=(None, -0.2))
-    eog_evoked.plot_joint()
-    
-    filt_raw = data.copy().filter(l_freq=1.0, h_freq=None)
-    
-    ica = ICA(n_components=15, max_iter="auto", random_state=97)
-    ica.fit(filt_raw)
-    
-    ica.exclude = []
-    # find which ICs match the EOG pattern
-    eog_indices, eog_scores = ica.find_bads_eog(data)
-    ica.exclude = eog_indices
-
-    # barplot of ICA component "EOG match" scores
-    ica.plot_scores(eog_scores)
-
-    # plot diagnostics
-    ica.plot_properties(data, picks=eog_indices)
-
-    # plot ICs applied to raw data, with EOG matches highlighted
-    ica.plot_sources(data, show_scrollbars=False)
-
-    # plot ICs applied to the averaged EOG epochs, with EOG matches highlighted
-    ica.plot_sources(eog_evoked)
-
 def autorejection_epochs(cfg, epochs,fif_fname, protocol, save=False, verbose=True, plot=True):
 
     n_interpolates = np.array([1, 4, 32])
@@ -294,7 +166,6 @@ def autorejection_epochs(cfg, epochs,fif_fname, protocol, save=False, verbose=Tr
         logger.info('saved cleaned data', data_name)
 
     return epochs
-
 
 def ICA_0Artifact (epochs, n_components, all_conditions):
     epochs["PP"].average().plot(spatial_colors=True)
