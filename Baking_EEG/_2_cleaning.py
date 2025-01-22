@@ -126,6 +126,8 @@ def correct_blink_ICA(data, patient_info, cfg, save=False, verbose=True, plot=Tr
 
 def correct_blink_ICA2(data, patient_info, cfg, save=False, verbose=True, plot=True):
     
+    data.plot(block=True, title='Show preprocessed EEG to see if there is ocular events')
+
     eog_chan = 'VEOGL'
     
     eog_epoch = mne.preprocessing.create_eog_epochs(data, ch_name=eog_chan)
