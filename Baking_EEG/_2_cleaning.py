@@ -93,7 +93,7 @@ def correct_blink_ICA(data, patient_info, cfg, save=False, verbose=True, plot=Tr
             data.plot(events=eog_epoch.events, block=True, title="EEG signal after ICA correction")
         
         if save and ica.exclude!= []:
-            data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
+            data_name = patient_info['data_save_dir'] + cfg.data_preproc_path
             data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
 
             #data_name = cfg.data_preproc_path + data.info['subject_info']['his_id'] + cfg.prefix_processed.strip('.fif') + cfg.prefix_ICA

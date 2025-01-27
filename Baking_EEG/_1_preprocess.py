@@ -268,14 +268,14 @@ def preprocess(patient_info, cfg, save=False, verbose=True, plot=True):
         
     
     if save:
-        data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
+        data_name = patient_info['data_save_dir'] + cfg.data_preproc_path
         data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
         print("Saving data : " + data_name)
         if patient_info['protocol'] != 'Resting':
             data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
             if patient_info['EEG_system'] == 'EGI': 
                 ######For EGI subjects, save stimulation name dictionary #######
-                nameStimDict =  patient_info['data_save_dir'] + cfg.all_folders_PP['stimDict_path'] 
+                nameStimDict =  patient_info['data_save_dir'] + cfg.stimDict_path
                 nameStimDict = nameStimDict + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_stimDict ## For the stimuli dictionary (names of stimuli given automatically vs ones we gave the stimuli)
                 np.save(nameStimDict, event_id)
                 logger.info("Saved stimdict data " + nameStimDict)

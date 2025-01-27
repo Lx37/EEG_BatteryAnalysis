@@ -5,13 +5,14 @@
 ###### File names organisation and prefixes ######
 
 # folder to store the data for preprocessing
-#data_preproc_path = 'data_preproc/'
+data_preproc_path = 'data_preproc/'
+stimDict_path = 'data_stimdict/'
 
 ##folders to store the data for PP analysis
 all_folders_PP = {
     #'data_Subject_Dir' : 'data_EEG/',
-    'data_preproc_path' : 'data_preproc/',
-    'stimDict_path' : 'PP/data_stimdict/',
+    #'data_preproc_path' : 'data_preproc/',
+    #'stimDict_path' : 'PP/data_stimdict/',
     'data_epochs_path' : 'PP/data_epochs/',
     'data_evoked_path' : 'PP/data_evoked/',
     'plot_topo_path' : 'PP/plots/Topomap/',
@@ -125,7 +126,34 @@ epochs_reject_Words = None #dict(eeg= 150e-6, eog=150e-6)
 ###################################################
 #########  Configuration for connectivity  ########
 
+# Connectivity epoching
 epochs_reject_con = None 
                     #dict(eeg=200e-6,      # unit: V (EEG channels)
                     #eog=250e-6      # unit: V (EOG channels)
                     #)
+
+# Connectivity parameters for computation                  
+con_freq_bands = {"delta": [0.5, 4.0],
+                "theta": [4.0, 8.0],
+                "alpha": [8.0, 13.0],
+                "beta": [13.0, 30.0],
+                "sigma": [30.0, 40.0],}
+#fmin = 4
+#fmax = 8
+con_tmin = 0.0  # exclude the baseline period
+con_method = 'wpli2_debiased'
+
+#event_ids = ['Music', 'Noise', 'Rest after Music','Rest after noise', 'Interact music', 'Interact noise']
+con_event_ids = ['303']   
+
+con_all_ROI_chan = {
+    'ROI_Frontal' : ['E22', 'E15', 'E9', 'E18', 'E16', 'E10', 'E19', 'E11', 'E4', 'E12', 'E5'], #E17, E21, E14
+    'ROI_Frontal_droit' : ['E2', 'E3', 'E123', 'E124', 'E122', 'E118', 'E117', 'E116'],  #121 E8, E1
+    'ROI_Frontal_gauche' : ['E26', 'E23', 'E27', 'E24', 'E33', 'E34', 'E28', 'E20'], #E38
+    'ROI_Central' :  ['E6', 'E13', 'E112', 'E30', 'E7', 'E106', 'E105', 'E31', 'E37', 'E80', 'E87', 'E79', 'E54', 'E55'], #Remis CZ (nommé 'VREF', position 128) E128
+    'ROI_Temporal_droit' : ['E110', 'E111', 'E115', 'E109', 'E104', 'E103', 'E108', 'E93', 'E98', 'E102'], #E114
+    'ROI_Temporal_gauche' :  ['E39', 'E35', 'E29', 'E40', 'E41', 'E36', 'E45', 'E46', 'E47', 'E42'], #E44
+    'ROI_Parietal' : ['E61', 'E62', 'E78', 'E67', 'E72', 'E77', 'E71', 'E76', 'E70', 'E75', 'E83'], #E74, E82
+    'ROI_Occipito_temporal_droit' : ['E50', 'E51', 'E52', 'E53', 'E58', 'E59', 'E60', 'E65', 'E66'], #E57, E64, E69
+    'ROI_Occipito_temporal_gauche' : ['E86', 'E92', 'E97', 'E101', 'E85', 'E91', 'E96', 'E84', 'E90'] #E100, E95, E89
+}

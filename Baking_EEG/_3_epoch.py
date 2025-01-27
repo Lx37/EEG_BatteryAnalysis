@@ -30,7 +30,7 @@ def get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True):
     
     if patient_info['EEG_system'] == 'EGI':
         
-        StimNpy = patient_info['data_save_dir'] + cfg.all_folders_PP['stimDict_path'] + SubName + '_' + patient_info['protocol'] + cfg.prefix_stimDict
+        StimNpy = patient_info['data_save_dir'] + cfg.stimDict_path + SubName + '_' + patient_info['protocol'] + cfg.prefix_stimDict
         print(StimNpy)
         translate_dict = np.load(StimNpy, allow_pickle=True).item()
 

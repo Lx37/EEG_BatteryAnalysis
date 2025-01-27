@@ -62,7 +62,7 @@ if patient_info['data_fname'].endswith('.set'): # EGI .mff raw data format
 '''
 print("################## Cleaning data " + sujet + " ##################")
 
-data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
+data_name = patient_info['data_save_dir'] + cfg.data_preproc_path
 data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
 
 data = mne.io.read_raw_fif(data_name, preload=True)
@@ -72,7 +72,7 @@ data = cleaning.correct_blink_ICA(data, patient_info, cfg, save=save, verbose=ve
 '''
 print("################## Epoching data " + sujet + " ##################")
 
-data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
+data_name = patient_info['data_save_dir'] + cfg.data_preproc_path
 data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
 
 data = mne.io.read_raw_fif(data_name, preload=True)
