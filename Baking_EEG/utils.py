@@ -44,11 +44,16 @@ def create_patient_info(sujet, xls_patients_info, protocol, raw_data_dir, data_s
             bad_sub_chan.append(chanstring[i])
     
     #print('bad_sub_chan : ', bad_sub_chan)
+    print('data_fname : ', data_fname)
+    print('ici : ', data_fname.endswith('.mff'))
 
     if data_fname.endswith('.mff'): # EGI .mff raw data format
         EEG_system = 'EGI'
-    if data_fname.endswith('.set'):
+    elif data_fname.endswith('.set'):
         EEG_system = 'Gtec_EEGlab'
+    else:
+        print('Data format not recognized. Please check path and data file name in excel file.')
+        sys.exit()
 
   
     #create patient_info dictionary
@@ -118,9 +123,16 @@ def update_excel_bad_chan(patient_info, bad_chans):
     bad_chans_str = ','.join(str(i) for i in bad_chans)
     
     # Update the DataFrame
-    df.loc[df['ID_patient'] == patient_info['ID_patient'], 'Bad_Chans_PP'] = bad_chans_str
-    
-    print('df : ', df[df['ID_patient'] == patient_info['ID_patient']]['Bad_Chans_PP'])
+    if patient_info['protocol'] == 'PP':
+        df.loc[df['ID_patient'] == patient_info['ID_patient'], 'Bad_Chans_PP'] = bad_chans_str
+    elif  patient_info['protocol'] == 'LG':
+        df.loc[df['ID_patient'] == patient_info['ID_patient'], 'Bad_Chans_LG'] = bad_chans_str
+    elif  patient_info['protocol'] == 'Resting':
+        df.loc[df['ID_patient'] == patient_info['ID_patient'], 'Bad_Chans_Resting'] = bad_chans_str
+    else:
+        print('Protocol not recognized when updating the excel file for bab_chans.')
+        return 
+    #print('df : ', df[df['ID_patient'] == patient_info['ID_patient']]['Bad_Chans_PP'])
     
     # Save the updated DataFrame back to the CSV file
     df.to_csv(patient_info['xls_patients_info'], index=False)
