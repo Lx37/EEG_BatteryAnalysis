@@ -76,6 +76,18 @@ data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_pat
 data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
 
 data = mne.io.read_raw_fif(data_name, preload=True)
-data = _3_epoch.get_epochs_connectivity(data, patient_info, cfg, save=True, verbose=True, plot=True)
+data = epoch.get_epochs_connectivity(data, patient_info, cfg, save=True, verbose=True, plot=True)
 
 #'''
+
+#'''
+print("################## Connectivity " + sujet + " ##################")
+
+data_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_preproc_path']
+data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
+
+data = mne.io.read_raw_fif(data_name, preload=True)
+data = epoch.get_epochs_connectivity(data, patient_info, cfg, save=True, verbose=True, plot=True)
+
+#'''
+

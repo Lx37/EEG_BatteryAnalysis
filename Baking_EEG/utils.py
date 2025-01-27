@@ -140,3 +140,52 @@ def update_excel_bad_chan(patient_info, bad_chans):
    
     return df
 
+
+def cut_preprocessed_sig(data, patient_info, cfg):
+
+    # Patch for data that have not been cutted around events [Riham Analysis]
+
+    if patient_info['protocol'] != 'Resting':
+        events = mne.find_events(data, stim_channel='STI 014')
+        event_names = np.zeros((events.shape[0],), dtype='S10') # new array one column of zero's with max lenght of 10 caracters
+        print('events : ', events)
+        print('events type : ', type(events))
+        print('events shape : ', events.shape)
+        print('event_names : ', event_names)
+        event_id = list(np.unique(events[:, 2]))
+        print('event_id : ', event_id)
+        
+        for x in range(events.shape[0]): # loop over rows
+            value = events[x, 2] # take each 3th column
+            new_value = [k for k in event_id if k==value][0]
+            event_names[x] = new_value
+            good_events = events[(event_names!=b'Rest') & (event_names!=b'Code') & (event_names!=b'star') & (event_names!=b'rest'), :] # all events where names is not 'rest'
+
+        i_start = int(good_events[0][0]/data.info['sfreq']-3)
+        i_stop =  int(good_events[-1][0]/data.info['sfreq']+3)
+            
+
+    data_name = patient_info['data_save_dir'] + cfg.data_preproc_path
+    data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
+    print("Saving data : " + data_name)
+    if patient_info['protocol'] != 'Resting':
+        data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
+        if patient_info['EEG_system'] == 'EGI': 
+            ######For EGI subjects, save stimulation name dictionary #######
+            nameStimDict =  patient_info['data_save_dir'] + cfg.stimDict_path
+            nameStimDict = nameStimDict + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_stimDict ## For the stimuli dictionary (names of stimuli given automatically vs ones we gave the stimuli)
+            #np.save(nameStimDict, event_id)
+    else:
+        #cas particuliers du 'resting'
+        if patient_info['ID_patient'] == 'TpDC22J1': 
+            i_start = 0
+            i_stop =  1050
+            data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
+        
+        #if patient_info['ID_patient'] == 'UN AUTRE PATIENT RESTING QUI MARCHE PAS': 
+        #    i_start = LA OU IL FAUT COUPER EN SECONDES (début)
+        #    i_stop =  LA OU IL FAUT COUPER EN SECONDES (fin)
+        #    data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
+        
+
+

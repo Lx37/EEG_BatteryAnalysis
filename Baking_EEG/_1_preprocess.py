@@ -258,13 +258,13 @@ def preprocess(patient_info, cfg, save=False, verbose=True, plot=True):
             print(data.ch_names)
             print("sfreq : ", sfreq)
 
-        if patient_info['ID_patient'] == 'CB31':  #Generalize ??
-            i_start = 860
-        elif patient_info['ID_patient'] == 'GU32':
-            i_start = 780 #Patient GU32 extra headphone check resulted in triggers before start of protocol!
-        else:
-            i_start = int(good_events[0][0]/data.info['sfreq']-3)
-            i_stop =  int(good_events[-1][0]/data.info['sfreq']+3)
+        #if patient_info['ID_patient'] == 'CB31':  #Generalize ??
+        #    i_start = 860
+        #elif patient_info['ID_patient'] == 'GU32':
+        #    i_start = 780 #Patient GU32 extra headphone check resulted in triggers before start of protocol!
+        #else:
+        i_start = int(good_events[0][0]/data.info['sfreq']-3)
+        i_stop =  int(good_events[-1][0]/data.info['sfreq']+3)
         
     
     if save:

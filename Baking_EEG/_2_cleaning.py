@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def correct_blink_ICA(data, patient_info, cfg, save=False, verbose=True, plot=True):
-    
+        
     data.plot(block=True, title='Show preprocessed EEG to see if there is ocular events')
 
     eog_chan = 'VEOGL'
