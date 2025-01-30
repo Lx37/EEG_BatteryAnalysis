@@ -20,8 +20,8 @@ from Baking_EEG import _3_epoch as epoch
 ############ Your part ! #############
 ######################################
 # Indicate the protocol and subject you're working on + data directory and excel file with patients info
-protocol = 'Resting' # 'PP' or 'LG' or 'Resting' (TODO: 'Words' or 'Arythmetic')
-sujet = 'TpDC22J1'#'AD94' #LC97 #AG42
+protocol = 'LG' # 'PP' or 'LG' or 'Resting' (TODO: 'Words' or 'Arythmetic')
+sujet = 'AD94'#'AD94' #LC97 #AG42
 # Set the parameters for the preprocessing : save data or not, verbose or not, plot or not (True or False)
 save = True
 verbose = True
@@ -69,7 +69,7 @@ print("################## End of Preprocess ##################")
 
 '''
 
-#'''
+'''
 
 # Patch for data that have not been cutted around events [from Riham Analysis]
 data_name = patient_info['data_save_dir'] + cfg.data_preproc_path
@@ -81,7 +81,7 @@ print('DATA : ')
 print(data.info)
 
 utils.cut_preprocessed_sig(data, patient_info, cfg)
-
+'''
 
 #'''
 
@@ -100,7 +100,7 @@ data = cleaning.correct_blink_ICA(data, patient_info, cfg, save=save, verbose=ve
 print("################## Epoching data " + sujet + " ##################")
 
 data_name = patient_info['data_save_dir'] + cfg.data_preproc_path
-data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
+data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed #prefix_ICA  # cfg.prefix_processed
 
 data = mne.io.read_raw_fif(data_name, preload=True)
 data = epoch.get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True)

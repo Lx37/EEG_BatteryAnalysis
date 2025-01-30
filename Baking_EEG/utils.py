@@ -83,6 +83,10 @@ def create_arbo(protocol, patient_info, cfg):
     if not os.path.exists(folder):
         os.makedirs(folder)   
     
+    folder = patient_info['data_save_dir'] + cfg.data_con_path
+    if not os.path.exists(folder):
+        os.makedirs(folder)   
+    
     # Create the folders for the preprocessing
     if protocol == 'PP':
         print('###### Creating the PP arborescence folders ######')

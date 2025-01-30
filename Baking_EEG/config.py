@@ -7,6 +7,8 @@
 # folder to store the data for preprocessing
 data_preproc_path = 'data_preproc/'
 stimDict_path = 'data_stimdict/'
+data_con_path = 'data_connectivity/'
+result_con_path = 'connectivity/'
 
 ##folders to store the data for PP analysis
 all_folders_PP = {
@@ -64,6 +66,8 @@ EGI_chan_names = ['E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'E9', 'E10',
                 'E101', 'E102', 'E103', 'E104', 'E105', 'E106', 'E107', 'E108', 'E109', 'E110',
                 'E111', 'E112', 'E113', 'E114', 'E115', 'E116', 'E117', 'E118', 'E119', 'E120',
                 'E121', 'E122', 'E123', 'E124', 'E125', 'E126', 'E127', 'E128', 'VREF'] #E129
+
+EGI_misc_dict = {'E8':'misc','E25':'misc','E17':'misc','E126':'misc','E127':'misc'}
 
 #VEOG = veog1 - veog
 occular_EGI = {'veog1':'E25', 'veog2':'E127', 'veogr1':'E8', 'veogr2':'E126', 'heog1':'E32', 'heog2':'E1'}
@@ -143,6 +147,9 @@ con_freq_bands = {"delta": [0.5, 4.0],
 con_tmin = 0.0  # exclude the baseline period
 con_method = 'wpli2_debiased'
 
+con_vmin = 0
+con_vmax = 1
+
 #event_ids = ['Music', 'Noise', 'Rest after Music','Rest after noise', 'Interact music', 'Interact noise']
 con_event_ids = ['303']   
 
@@ -157,3 +164,5 @@ con_all_ROI_chan = {
     'ROI_Occipito_temporal_droit' : ['E50', 'E51', 'E52', 'E53', 'E58', 'E59', 'E60', 'E65', 'E66'], #E57, E64, E69
     'ROI_Occipito_temporal_gauche' : ['E86', 'E92', 'E97', 'E101', 'E85', 'E91', 'E96', 'E84', 'E90'] #E100, E95, E89
 }
+
+EGI_con_chan =  [x for x in EGI_chan_names if x not in EGI_misc_dict.keys()] # All chan - those declared as misc

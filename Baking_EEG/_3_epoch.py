@@ -74,7 +74,9 @@ def get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True):
     elif patient_info['protocol'] == 'WORDS':
         events_id = cfg.events_id_WORDS
         epochs_reject = cfg.epochs_reject_WORDS
-        #TODO other protocols
+    
+    
+    #TODO other protocols
     
 
 
@@ -103,8 +105,20 @@ def get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True):
     #gger.info('Number of redefined events :,%s', events_redef_equal.size)
     logger.info('Number of epochs :,%s', len(epochs))
     
-    #TODO saving ?
-    
+    if save:
+        if patient_info['protocol'] == 'PP':
+            epochs_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_epochs_path']
+        elif patient_info['protocol'] == 'LG':
+            epochs_name = patient_info['data_save_dir'] + cfg.all_folders_LG['data_epochs_path']
+        elif patient_info['protocol'] == 'Resting':
+            epochs_name = patient_info['data_save_dir'] + cfg.all_folders_Resting['data_epochs_path']
+        epochs_name = epochs_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_epo_conn
+        print("Saving data : " + epochs_name)
+        
+        #epochs_name = cfg.data_epochs_path + data.info['subject_info']['his_id'] + '_' + proto + cfg.prefix_epoched
+        #print("Saving data : " + epochs_name)
+        epochs.save(epochs_name, overwrite=True)
+
     return epochs
 
 
@@ -161,7 +175,7 @@ def get_epochs_connectivity(data, patient_info, cfg, save=True, verbose=True, pl
     logger.info('Number of epochs :,%s', len(epochs))
     
     if save:
-        epochs_name = patient_info['data_save_dir'] + cfg.all_folders_PP['data_epochs_path']
+        epochs_name = patient_info['data_save_dir'] + cfg.data_con_path
         epochs_name = epochs_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_epo_conn
         print("Saving data : " + epochs_name)
         

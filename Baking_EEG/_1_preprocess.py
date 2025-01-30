@@ -200,7 +200,7 @@ def preprocess(patient_info, cfg, save=False, verbose=True, plot=True):
     patient_info['bad_sub_chan'] = data.info['bads']
 
     if patient_info['EEG_system'] == 'EGI': #exclusion of non-analysed channels
-        data.set_channel_types({'E8':'misc','E25':'misc','E17':'misc','E126':'misc','E127':'misc'})
+        data.set_channel_types(cfg.EGI_misc_dict)
         data.info['bads'].extend(['VREF']) # was 'E129'+ ['Cz']
     
     logger.info('Bad channels : ,%s', data.info['bads'])
