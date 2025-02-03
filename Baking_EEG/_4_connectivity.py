@@ -11,7 +11,7 @@ import xarray as xr
 from mne_connectivity.viz import plot_connectivity_circle
 import mne
 
-#import config as cfg
+import config as cfg
 
 ## logging info ###
 import logging
@@ -20,12 +20,12 @@ from datetime import datetime
 import os
 os.environ["QT_API"] = "pyside6"
 
+###MODIF GENERALE BRU : remplacement des chemins/events/prefix du fichier cfg par "....._BRU"
 
 
-
-def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=True, plot=True, show_plot=True):
+def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=True, plot=False, show_plot=True):
         
-    event_ids = cfg.con_event_ids
+    event_ids = cfg.con_event_ids_BRU
     freq_bands = cfg.con_freq_bands
     tmin = cfg.con_tmin
     
@@ -34,7 +34,7 @@ def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=
         n_chans = len(selected_chans)
         df_chan = pd.DataFrame(np.nan, index=selected_chans, columns=selected_chans)
     else:
-        fif_fname = f'{data_save_dir}{cfg.data_con_path}{subs[0]}_{proto}{cfg.prefix_epo_conn}'  #pas top clean, on suppose que tous les sujets ont les memes canaux
+        fif_fname = f'{data_save_dir}{cfg.data_epochs_path}{subs[0]}_{proto}{cfg.prefix_epochs_BRU}'  #pas top clean, on suppose que tous les sujets ont les memes canaux
         print('################fif_fname : ', fif_fname)
         #TODO set VREF as good ?
         epochs = mne.read_epochs(fif_fname, proj=False, verbose=True, preload=True)#.pick_types(eeg=True) 
@@ -42,15 +42,16 @@ def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=
         n_chans = len(chans_names) 
         print('nb chan : ', n_chans)
         print('###################chans_names : ', chans_names)
-        assert chans_names == cfg.EGI_con_chan, "All chan for this sub are not consistent" #check channel consistency over subjects   
+        filtered_chans = [chan for chan in chans_names if chan in cfg.EGI_con_chan_BRU] ####MODIF BRU : pour une raison inconnue, ça buggait malgré les memes channels entre la liste / le sujet donc j'ai ajouté cette ligne qui filtre les channs.
+        assert filtered_chans == cfg.EGI_con_chan_BRU, "All chan for this sub are not consistent" #check channel consistency over subjects
         df_chan = pd.DataFrame(np.nan, index=chans_names, columns=chans_names)
 
     #Get real chan index
-    All_ROI = cfg.con_all_ROI_chan
+    All_ROI = cfg.con_all_ROI_chan_BRU
     for kk in All_ROI.keys():
         print('key :', kk)
         index_list = []
-        for cc in cfg.con_all_ROI_chan[kk]:
+        for cc in cfg.con_all_ROI_chan_BRU[kk]:
             index = chans_names.index(cc)
             index_list.append(index)
         All_ROI[kk] = index_list
@@ -73,7 +74,7 @@ def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=
         fmax = freq_bands[k][1]
     
         for i_sub, sub in enumerate(subs):
-            fif_fname = f'{data_save_dir}{cfg.data_con_path}{sub}_{proto}{cfg.prefix_epo_conn}'
+            fif_fname = f'{data_save_dir}{cfg.data_epochs_path}{sub}_{proto}{cfg.prefix_epochs_BRU}'
             print('fif_fname : ', fif_fname)
             epochs = mne.read_epochs(fif_fname, proj=False, verbose=True, preload=True)
         
@@ -100,37 +101,51 @@ def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=
 
                 # Saving data
                 if save:
-                    if not os.path.exists(f'{data_save_dir}{cfg.result_con_path}/{sub}/'):
-                        os.makedirs(f'{data_save_dir}{cfg.result_con_path}/{sub}/')
+                    if not os.path.exists(f'{data_save_dir}{cfg.result_con_path_BRU}/{sub}/'):
+                        os.makedirs(f'{data_save_dir}{cfg.result_con_path_BRU}/{sub}/')
                     #Saving connectivity chan values for each sub/freq/proto
                     df_chan_sub = pd.DataFrame(np.nan, index=chans_names, columns=chans_names)
                     df_chan_sub.loc[:, :] = con_matrix
-                    df_con_sub_name =  f'{data_save_dir}{cfg.result_con_path}/{sub}/{sub}_{proto}_{cfg.con_method}_{k}_conData.xlsx'
+                    df_con_sub_name = f'{data_save_dir}{cfg.result_con_path_BRU}/{sub}/{sub}_{proto}_{cfg.con_method}_{k}_{event_id}_conData.xlsx'
                     df_chan_sub.to_excel(df_con_sub_name)
                     
                     #Saving connectivity ROI velues for each sub/freq/proto
-                    df_Roi_sub_name =  f'{data_save_dir}{cfg.result_con_path}/{sub}/{sub}_{proto}_{cfg.con_method}_{k}_ROI.xlsx'
+                    df_Roi_sub_name = f'{data_save_dir}{cfg.result_con_path_BRU}/{sub}/{sub}_{proto}_{cfg.con_method}_{k}_{event_id}_ROI.xlsx'
                     df_ROI_sub.to_excel(df_Roi_sub_name)
-                    
-                #plot conn ROI for each subjet
-                ROI_sub_fig, ROI_sub_ax = plot_connectivity_circle(df_ROI_sub.to_numpy(), All_ROI.keys(), title=f'{sub} {proto} Connectivity {k} band', vmin=cfg.con_vmin, vmax=cfg.con_vmax)
-                fname_sub_fig =  f'{data_save_dir}{cfg.result_con_path}/{sub}/{sub}_{proto}_{cfg.con_method}_{k}_conData_ROI.png'
-                ROI_sub_fig.savefig(fname_sub_fig, facecolor='black') 
-                
-               
+
+                if plot: ###MODIF BRU : ajout de if plot
+                    #plot conn ROI for each subjet
+                    ROI_sub_fig, ROI_sub_ax = plot_connectivity_circle(df_ROI_sub.to_numpy(), All_ROI.keys(),
+                                                                       title=f'{sub} {proto} Event {event_id} Connectivity {k} band',
+                                                                       vmin=cfg.con_vmin, vmax=cfg.con_vmax)
+                    fname_sub_fig = f'{data_save_dir}{cfg.result_con_path_BRU}/{sub}/{sub}_{proto}_{cfg.con_method}_{k}_{event_id}_conData_ROI.png'
+                    ROI_sub_fig.savefig(fname_sub_fig, facecolor='black')
+
+
+
                 all_conn_aray[:, :, i_event, i_sub] = con_data.get_data(output='dense')[:, :, 0].copy()
                 #all_conn_ROI_aray[:, :, i_event, i_sub] = df_ROI_sub.to_numpy()
-        
-        if save:
-            all_conn_aray_name = f'{data_save_dir}{cfg.result_con_path}/{proto}_{cfg.con_method}_{k}_allSubConArray.npy'
+
+        if save: ####MODIF BRU : ajout de cette double boucle pour enregistrer des excels moyennés sur les sujets par bande de freq + event
+            for i_key, k in enumerate(freq_bands.keys()):
+                for i_event, event_id in enumerate(event_ids):
+                    mean_conn_matrix = np.mean(all_conn_aray[:, :, i_event, :], axis=2)  # Calculate average over subs
+                    mean_ROI_matrix, df_mean_ROI = get_ROI(mean_conn_matrix, All_ROI)
+
+                    mean_ROI_name = f'{data_save_dir}{cfg.result_con_path_BRU}/Mean_{proto}_{cfg.con_method}_{k}_{event_id}_ROI.xlsx'
+                    df_mean_ROI.to_excel(mean_ROI_name)
+
+                    print(f'Save mean by ROI: {mean_ROI_name}')
+
+            all_conn_aray_name = f'{data_save_dir}{cfg.result_con_path_BRU}/{proto}_{cfg.con_method}_{k}_allSubConArray.npy'
             np.save(all_conn_aray_name, all_conn_aray)
         
         
-        if len(event_ids) == 1 : #TODO traiter le cas si plusieurs event_id
-            all_con_matrix = np.average(all_conn_aray, axis = 3).reshape(all_conn_aray.shape[0],all_conn_aray.shape[1])
+        if len(event_ids) == 6 : #TODO traiter le cas si plusieurs event_id
+            all_con_matrix = np.average(all_conn_aray, axis=(2, 3)) ####MODIF BRU de l'axis car 6 events dans mon protocole donc pas les memes dimensions d'array qu'avant
             # ROI of averaged con data
             Result_ROI, df_ROI = get_ROI(all_con_matrix, All_ROI)
-            df_ROI_name = f'{data_save_dir}{cfg.result_con_path}/{proto}_{cfg.con_method}_{k}_allSub_ROI.xlsx'
+            df_ROI_name = f'{data_save_dir}{cfg.result_con_path_BRU}/{proto}_{cfg.con_method}_{k}_allSub_ROI.xlsx'
             df_ROI.to_excel(df_ROI_name)
             
             #averaged ROI of each con data  - it's the same as ROI of averaged data
@@ -140,12 +155,12 @@ def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=
             #df_ROI_2.to_excel(df_ROI2_name)
             
             df_chan.loc[:, :] = all_con_matrix
-            df_chan_name = f'{data_save_dir}{cfg.result_con_path}/{proto}_{cfg.con_method}_{k}_allSub_Chan.xlsx'
+            df_chan_name = f'{data_save_dir}{cfg.result_con_path_BRU}/{proto}_{cfg.con_method}_{k}_allSub_Chan.xlsx'
             df_chan.to_excel(df_chan_name)
             
             print(df_ROI.to_numpy().shape)
             ROI_fig, ROI_ax = plot_connectivity_circle(df_ROI.to_numpy(), All_ROI.keys(), title=f'{proto} AllSub Connectivity {k} band', vmin=cfg.con_vmin, vmax=cfg.con_vmax)
-            fname_fig = f'{data_save_dir}{cfg.result_con_path}/{proto}_{cfg.con_method}_{k}_allSub_ROI.png'
+            fname_fig = f'{data_save_dir}{cfg.result_con_path_BRU}/{proto}_{cfg.con_method}_{k}_allSub_ROI.png'
             ROI_fig.savefig(fname_fig, facecolor='black') 
         
         # Hack the sensor connectivity plot to show averaged conn data (over subj)
@@ -248,3 +263,10 @@ def print_infos(con_data):
     con_data.plot_circle()
     plt.show()
 
+####MODIF BRU : ajout de ces quelques lignes ci-dessous pour appeler la fonction
+subs = ['CHE', 'DES', 'EDC', 'GIC', 'GRL', 'HAA', 'MAL', 'MIL', 'MOP', 'PAP', 'POA', 'PRP', 'REL', 'ROL', 'SAE', 'TAI']
+data_save_dir = "C:/Users\Bruno\Documents\PycharmProjects\scripts_exp\Analyse_EEG\Analysis/"
+selected_chans = 'All'
+proto = 'preproc_100Hz_ICA'
+all_conn_data = connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=True, plot=False, show_plot=False)
+print("Données de connectivité collectées :", all_conn_data.shape)
