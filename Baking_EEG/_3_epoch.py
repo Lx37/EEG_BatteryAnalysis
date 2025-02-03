@@ -124,10 +124,10 @@ def get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True):
 
 
 # From Riham epoching code -> connectivity epochs
-def get_epochs_connectivity(data, patient_info, cfg, save=True, verbose=True, plot=True):
+def get_epochs_connectivity(data, sub, proto, data_save_dir, cfg, save=True, verbose=True, plot=True):
     
-    SubName = patient_info['ID_patient']
-    proto = patient_info['protocol']
+    #SubName = patient_info['ID_patient']
+    #proto = patient_info['protocol']
 
     assert data.info['sfreq'] == cfg.sfreq, 'Pbl Fréquences d"echantillonnage !!'
 
@@ -168,15 +168,15 @@ def get_epochs_connectivity(data, patient_info, cfg, save=True, verbose=True, pl
 
     if plot:
         #epochs.plot_drop_log(subject=SubName)
-        epochs.plot(title=f'SubName - Click to manually reject event if needed', show=True, block=True, scalings=dict(eeg=50e-6, eog=100e-6))  # Here it's possible to click on event to reject
+        epochs.plot(title= sub + " " + proto + ' - Click to manually reject event if needed', show=True, block=True, scalings=dict(eeg=200e-6, eog=100e-6))  # Here it's possible to click on event to reject
 
     logger.info('Number of events : ,%s', events.size)
     logger.info('Number of events : ,%s', events.size)
     logger.info('Number of epochs :,%s', len(epochs))
     
     if save:
-        epochs_name = patient_info['data_save_dir'] + cfg.data_con_path
-        epochs_name = epochs_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_epo_conn
+        epochs_name = data_save_dir + cfg.data_con_path
+        epochs_name = epochs_name + sub + '_' + proto + cfg.prefix_epo_conn
         print("Saving data : " + epochs_name)
         
         #epochs_name = cfg.data_epochs_path + data.info['subject_info']['his_id'] + '_' + proto + cfg.prefix_epoched
