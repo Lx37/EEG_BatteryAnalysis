@@ -127,48 +127,17 @@ def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=
                 #all_conn_ROI_aray[:, :, i_event, i_sub] = df_ROI_sub.to_numpy()
 
         if save: ####MODIF BRU : ajout de cette double boucle pour enregistrer des excels moyennés sur les sujets par bande de freq + event
-            for i_key, k in enumerate(freq_bands.keys()):
-                for i_event, event_id in enumerate(event_ids):
-                    mean_conn_matrix = np.mean(all_conn_aray[:, :, i_event, :], axis=2)  # Calculate average over subs
-                    mean_ROI_matrix, df_mean_ROI = get_ROI(mean_conn_matrix, All_ROI)
+            for i_event, event_id in enumerate(event_ids):
+                mean_conn_matrix = np.mean(all_conn_aray[:, :, i_event, :], axis=2)  # Calculate average over subs
+                mean_ROI_matrix, df_mean_ROI = get_ROI(mean_conn_matrix, All_ROI)
 
-                    mean_ROI_name = f'{data_save_dir}{cfg.result_con_path_BRU}/Mean_{proto}_{cfg.con_method}_{k}_{event_id}_ROI.xlsx'
-                    df_mean_ROI.to_excel(mean_ROI_name)
+                mean_ROI_name = f'{data_save_dir}{cfg.result_con_path_BRU}/Mean_{proto}_{cfg.con_method}_{k}_{event_id}_ROI.xlsx'
+                df_mean_ROI.to_excel(mean_ROI_name)
 
-                    print(f'Save mean by ROI: {mean_ROI_name}')
+                print(f'Save mean by ROI: {mean_ROI_name}')
 
             all_conn_aray_name = f'{data_save_dir}{cfg.result_con_path_BRU}/{proto}_{cfg.con_method}_{k}_allSubConArray.npy'
             np.save(all_conn_aray_name, all_conn_aray)
-        
-        
-        if len(event_ids) == 6 : #TODO traiter le cas si plusieurs event_id
-            all_con_matrix = np.average(all_conn_aray, axis=(2, 3)) ####MODIF BRU de l'axis car 6 events dans mon protocole donc pas les memes dimensions d'array qu'avant
-            # ROI of averaged con data
-            Result_ROI, df_ROI = get_ROI(all_con_matrix, All_ROI)
-            df_ROI_name = f'{data_save_dir}{cfg.result_con_path_BRU}/{proto}_{cfg.con_method}_{k}_allSub_ROI.xlsx'
-            df_ROI.to_excel(df_ROI_name)
-            
-            #averaged ROI of each con data  - it's the same as ROI of averaged data
-            #avAll_ROI =  np.average(all_conn_ROI_aray, axis = 3).reshape(all_conn_ROI_aray.shape[0], all_conn_ROI_aray.shape[1])
-            #df_ROI_2.loc[:, :] = avAll_ROI
-            #df_ROI2_name = f'{cfg.data_conn_path}/{proto}_{cfg.con_method}_{k}_allSub_ROI2.xlsx'
-            #df_ROI_2.to_excel(df_ROI2_name)
-            
-            df_chan.loc[:, :] = all_con_matrix
-            df_chan_name = f'{data_save_dir}{cfg.result_con_path_BRU}/{proto}_{cfg.con_method}_{k}_allSub_Chan.xlsx'
-            df_chan.to_excel(df_chan_name)
-            
-            print(df_ROI.to_numpy().shape)
-            ROI_fig, ROI_ax = plot_connectivity_circle(df_ROI.to_numpy(), All_ROI.keys(), title=f'{proto} AllSub Connectivity {k} band', vmin=cfg.con_vmin, vmax=cfg.con_vmax)
-            fname_fig = f'{data_save_dir}{cfg.result_con_path_BRU}/{proto}_{cfg.con_method}_{k}_allSub_ROI.png'
-            ROI_fig.savefig(fname_fig, facecolor='black') 
-        
-        # Hack the sensor connectivity plot to show averaged conn data (over subj)
-        hack_con_data_av = np.average(all_conn_aray, axis = 3)
-        #for ii in range(n_events):
-            #plot_sensors_connectivity(epochs.info, hack_con_data_av[:,:,ii], picks=chans_names)
-            #plot_connectivity_circle(hack_con_data_av[:,:,ii], chans_names)
-        #plt.show(block=True)
         
     return all_conn_aray 
         
