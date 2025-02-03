@@ -83,10 +83,6 @@ def create_arbo(protocol, patient_info, cfg):
     if not os.path.exists(folder):
         os.makedirs(folder)   
     
-    folder = patient_info['data_save_dir'] + cfg.data_con_path
-    if not os.path.exists(folder):
-        os.makedirs(folder)   
-    
     # Create the folders for the preprocessing
     if protocol == 'PP':
         print('###### Creating the PP arborescence folders ######')
@@ -186,10 +182,10 @@ def cut_preprocessed_sig(data, patient_info, cfg):
             i_stop =  1050
             data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
         
-        #if patient_info['ID_patient'] == 'UN AUTRE PATIENT RESTING QUI MARCHE PAS': 
-        #    i_start = LA OU IL FAUT COUPER EN SECONDES (début)
-        #    i_stop =  LA OU IL FAUT COUPER EN SECONDES (fin)
-        #    data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
+        if patient_info['ID_patient'] == 'XL89': 
+            i_start = 0
+            i_stop =  2170
+            data.save(data_name, tmin=i_start, tmax=i_stop, overwrite=True)
         
 
 

@@ -199,10 +199,8 @@ events_id_BRU = {'Music': 65, 'Noise':66, 'Rest after Music':67, 'Rest after noi
 #########  Configuration for connectivity  ########
 
 # Connectivity epoching
-epochs_reject_con = None 
-                    #dict(eeg=200e-6,      # unit: V (EEG channels)
-                    #eog=250e-6      # unit: V (EOG channels)
-                    #)
+epochs_reject_con = dict(eeg=1000e-6)      # unit: V (EEG channels)
+#epochs_reject_con = None
 
 # Connectivity parameters for computation                  
 con_freq_bands = {"delta": [0.5, 4.0],
