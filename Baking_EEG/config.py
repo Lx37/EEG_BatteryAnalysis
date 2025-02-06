@@ -162,20 +162,63 @@ erp_detrend = None # Either 0 or 1, the order of the detrending. 0 is a constant
 erp_topo = True
 
 # Specific PP
-events_id_PP = { 'PP/10': 110,'PP/20': 120,'PP/30': 130, 'AP/11': 111, 'AP/12': 112, 'AP/13': 113, 'AP/14': 114, 'AP/15': 115, 'AP/16': 116,
-'AP/21': 121, 'AP/22': 122, 'AP/23': 123, 'AP/24': 124, 'AP/25': 125, 'AP/26': 126,
-'AP/31': 131, 'AP/32': 132, 'AP/33': 133, 'AP/34': 134, 'AP/35': 135, 'AP/36': 136 } #'AP/22': 108, 'AP/12': 4 pour TpJC5 qui a 2 triggers en trop (22 et 23 devenus 4 et 108)
+#events_id_PP = { 'PP/10': 110,'PP/20': 120,'PP/30': 130, 'AP/11': 111, 'AP/12': 112, 'AP/13': 113, 'AP/14': 114, 'AP/15': 115, 'AP/16': 116,
+#'AP/21': 121, 'AP/22': 122, 'AP/23': 123, 'AP/24': 124, 'AP/25': 125, 'AP/26': 126,
+#'AP/31': 131, 'AP/32': 132, 'AP/33': 133, 'AP/34': 134, 'AP/35': 135, 'AP/36': 136 } #'AP/22': 108, 'AP/12': 4 pour TpJC5 qui a 2 triggers en trop (22 et 23 devenus 4 et 108)
 
 epochs_reject_PP = dict(eeg= 150e-6, eog=150e-6)
+epochs_reject_LG = dict(eeg= 150e-6, eog=150e-6)
 
-# Specific Words
-events_id_Words = {'TW/C/1': 2,'TW/C/2': 3,'TW/C/3': 4,'TW/C/4': 5, 'TW/C/5': 6, 'TW/C/6': 7, 'TW/C/7': 8, 'TW/C/8': 9, 'TW/C/9': 10, 'TW/C/10': 11, 'TW/C/11': 12, 'TW/C/12': 13, 'TW/C/13': 14, 'TW/C/14': 15, 'TW/C/15': 16, 'TW/C/16': 17, 'TW/C/17': 18, 'TW/C/18': 19, 'TW/C/19': 20, 'TW/C/20': 21, 'TW/C/21': 22, 'TW/C/22': 23, 'TW/C/23': 24,'TW/C/24': 25, 'TW/C/25': 26, 'TW/C/26': 27, 'TW/C/27': 28, 'TW/C/28': 29, 'TW/C/29': 30, 'TW/C/30': 31, 'TW/C/31': 32, 'TW/C/32': 33, 'TW/C/33': 34, 'TW/C/34': 35,'TW/C/35': 36, 'TW/C/36': 37, 'TW/C/37': 38, 'TW/C/38': 39, 'TW/C/39': 40, 'TW/C/40': 41, 'TW/C/41': 42, 'TW/C/42': 43, 'TW/C/43': 44, 'TW/C/44': 45, 'TW/C/45': 46, 'TW/C/46': 47, 'TW/C/47': 48, 'TW/C/48': 49, 'TW/C/49': 50, 'TW/C/50': 51, 'TW/C/51': 52, 'TW/C/52': 53, 'TW/C/53': 54, 'TW/C/54': 55, 'TW/C/55': 56, 'TW/C/56': 57, 'TW/C/57': 58, 'TW/C/58': 59, 'TW/C/59': 60, 'TW/C/60': 61, 'TW/C/61': 62, 'TW/C/62': 63, 'TW/C/63': 64, 'TW/C/64': 65, 'TW/C/65': 66, 'TW/C/66': 67, 'TW/C/67': 68, 'TW/C/68': 69, 'TW/C/69': 70, 'TW/C/70': 71, 'TW/C/71': 72, 'TW/C/72': 73, 'TW/C/73': 74, 'TW/C/74': 75, 'TW/C/75': 76, 'TW/C/76': 77, 'TW/C/77': 78, 'TW/C/78': 79, 'TW/C/79': 80, 'TW/C/80': 81,
-'TW/I/1': 101, 'TW/I/2': 102,'TW/I/3': 103,'TW/I/4': 104, 'TW/I/5': 105, 'TW/I/6': 106, 'TW/I/7': 107, 'TW/I/8': 108, 'TW/I/9': 109, 'TW/I/10': 110, 'TW/I/11': 111, 'TW/I/12': 112, 'TW/I/13': 113, 'TW/I/14': 114, 'TW/I/15': 115, 'TW/I/16': 116, 'TW/I/17': 117, 'TW/I/18': 118, 'TW/I/19': 119, 'TW/I/20': 120, 'TW/I/21': 121, 'TW/I/22': 122, 'TW/I/23': 123, 'TW/I/24': 124, 'TW/I/25': 125, 'TW/I/26': 126, 'TW/I/27': 127, 'TW/I/28': 128, 'TW/I/29': 129, 'TW/I/30': 130, 'TW/I/31': 131, 'TW/I/32': 132, 'TW/I/33': 133, 'TW/I/34': 134, 'TW/I/35': 135, 'TW/I/36': 136, 'TW/I/37': 137, 'TW/I/38': 138, 'TW/I/39': 139, 'TW/I/40': 140, 'TW/I/41': 141, 'TW/I/42': 142, 'TW/I/43': 143, 'TW/I/44': 144, 'TW/I/45': 145, 'TW/I/46': 146, 'TW/I/47': 147, 'TW/I/48': 148, 'TW/I/49': 149, 'TW/I/50': 150, 'TW/I/51': 151, 'TW/I/52': 152, 'TW/I/53': 153, 'TW/I/54': 154, 'TW/I/55': 155, 'TW/I/56': 156, 'TW/I/57': 157, 'TW/I/58': 158, 'TW/I/59': 159, 'TW/I/60': 160, 'TW/I/61': 161, 'TW/I/62': 162, 'TW/I/63': 163, 'TW/I/64': 164, 'TW/I/65': 165, 'TW/I/66': 166, 'TW/I/67': 167, 'TW/I/68': 168, 'TW/I/69': 169, 'TW/I/70': 170, 'TW/I/71': 171, 'TW/I/72': 172, 'TW/I/73': 173, 'TW/I/74': 174, 'TW/I/75': 175, 'TW/I/76': 176, 'TW/I/77': 177, 'TW/I/78': 178, 'TW/I/79': 179, 'TW/I/80': 180,
-'TPW': 201, 'PPW': 200, 'PC': 1, 'PI': 100}
+############# PP
+#All second numbers correspond to a particular song
+#For Conv:  1-3=Convoluted Right, 4-6=convoluted Left
+MusicDio = {'M21': 21, 'M22': 22, 'M23': 23, 'M24': 24, 'M25': 25, 'M26': 26}
+MusicConvG = {'M11': 11, 'M12': 12, 'M13': 13}
+MusicConvD = { 'M14': 14, 'M15': 15, 'M16': 16}
+
+TtP = { 'PP4': 140, 'PP5': 150, 'PP6': 160, 'PP7': 170, 'PP8': 180, 'PP9': 190,
+        'AP41': 141, 'AP42': 142, 'AP43': 143, 'AP44': 144, 'AP45': 145, 'AP46': 146,
+        'AP51': 151, 'AP52': 152, 'AP53': 153, 'AP54': 154, 'AP55': 155, 'AP56': 156,
+        'AP61': 161, 'AP62': 162, 'AP63': 163, 'AP64': 164, 'AP65': 165, 'AP66': 166,
+        'AP71': 171, 'AP72': 172, 'AP73': 173, 'AP74': 174, 'AP75': 175, 'AP76': 176,
+        'AP81': 181, 'AP82': 182, 'AP83': 183, 'AP84': 184, 'AP85': 185, 'AP86': 186,
+        'AP91': 191, 'AP92': 192, 'AP93': 193, 'AP94': 194, 'AP95': 195, 'AP96': 196}
+
+# Redifinition of AP triggers that come just before the PP, to take only those in further analysis
+Pp = { 'PP4': 140, 'PP5': 150, 'PP6': 160,
+      'PP7': 170, 'PP8': 180, 'PP9': 190,
+      'PP14': 1140, 'PP15': 1150, 'PP16': 1160,
+      'PP17': 1170, 'PP18': 1180, 'PP19': 1190}
+
+Ap = {'AP41': 141, 'AP42': 142, 'AP43': 143, 'AP44': 144, 'AP45': 145, 'AP46': 146,
+	'AP51': 151, 'AP52': 152, 'AP53': 153, 'AP54': 154, 'AP55': 155, 'AP56': 156,'AP61': 161, 'AP62': 162, 'AP63': 163, 'AP64': 164, 'AP65': 165, 'AP66': 166,
+	'AP71': 171, 'AP72': 172, 'AP73': 173, 'AP74': 174, 'AP75': 175, 'AP76': 176,'AP81': 181, 'AP82': 182, 'AP83': 183, 'AP84': 184, 'AP85': 185, 'AP86': 186,
+	'AP91': 191, 'AP92': 192, 'AP93': 193, 'AP94': 194, 'AP95': 195, 'AP96': 196,
+	'AP141': 1141, 'AP142': 1142, 'AP143': 1143, 'AP144': 1144, 'AP145': 1145, 'AP146': 1146,
+	'AP151': 1151, 'AP152': 1152, 'AP153': 1153, 'AP154': 1154, 'AP155': 1155, 'AP156': 1156,'AP161': 1161, 'AP162': 1162, 'AP163': 1163, 'AP164': 1164, 'AP165': 1165, 'AP166': 1166,
+	'AP171': 1171, 'AP172': 1172, 'AP173': 1173, 'AP174': 1174, 'AP175': 1175, 'AP176': 1176,'AP181': 1181, 'AP182': 1182, 'AP183': 1183, 'AP184': 1184, 'AP185': 1185, 'AP186': 1186,
+	'AP191': 1191, 'AP192': 1192, 'AP193': 1193, 'AP194': 1194, 'AP195': 1195, 'AP196': 1196}
+
+########### Definition of stimuli ###########
+events_id_PP = {'PP/Music/Conv/G/V1': 1140, 'PP/Music/Conv/G/V2': 1150,  'PP/Music/Conv/G/V3': 1160, 'PP/Music/Conv/D/V1': 1170, 'PP/Music/Conv/D/V2': 1180, 'PP/Music/Conv/D/V3': 1190,
+            'AP/1/Music/Conv/G/V1': 3141, 'AP/1/Music/Conv/G/V2': 3151, 'AP/1/Music/Conv/G/V3': 3161, 'AP/1/Music/Conv/D/V1': 3171, 'AP/1/Music/Conv/D/V2': 3181, 'AP/1/Music/Conv/D/V3': 3191,
+			'AP/2/Music/Conv/G/V1': 3142, 'AP/2/Music/Conv/G/V2': 3152, 'AP/2/Music/Conv/G/V3': 3162, 'AP/2/Music/Conv/D/V1': 3172, 'AP/2/Music/Conv/D/V2': 3182, 'AP/2/Music/Conv/D/V3': 3192,
+			'AP/3/Music/Conv/G/V1': 3143, 'AP/3/Music/Conv/G/V2': 3153, 'AP/3/Music/Conv/G/V3': 3163, 'AP/3/Music/Conv/D/V1': 3173, 'AP/3/Music/Conv/D/V2': 3183, 'AP/3/Music/Conv/D/V3': 3193,
+			'AP/4/Music/Conv/G/V1': 3144, 'AP/4/Music/Conv/G/V2': 3154, 'AP/4/Music/Conv/G/V3': 3164, 'AP/4/Music/Conv/D/V1': 3174, 'AP/4/Music/Conv/D/V2': 3184, 'AP/4/Music/Conv/D/V3': 3194,
+			'AP/5/Music/Conv/G/V1': 3145, 'AP/5/Music/Conv/G/V2': 3155, 'AP/5/Music/Conv/G/V3': 3165, 'AP/5/Music/Conv/D/V1': 3175, 'AP/5/Music/Conv/D/V2': 3185, 'AP/5/Music/Conv/D/V3': 3195,
+			'AP/6/Music/Conv/G/V1': 3146, 'AP/6/Music/Conv/G/V2': 3156, 'AP/6/Music/Conv/G/V3': 3166, 'AP/6/Music/Conv/D/V1': 3176, 'AP/6/Music/Conv/D/V2': 3186, 'AP/6/Music/Conv/D/V3': 3196}
+
+############### Averaging ###############
+all_conditions_PP  = {  'PPmusic' : ["PP/Music"],'APmusic' : ["AP/Music"],}
+
+###############  LG
+events_id_LG = {'LS/GS': 11, 'LS/GD':12, 'LD/GS':21, 'LD/GD':22}
 
 
-
-epochs_reject_Words = None #dict(eeg= 150e-6, eog=150e-6)
+############### Averaging ###############
+all_conditions_LG  = {  'LSGS' : ["LS/GS"],'LSGD' : ["LS/GD"],'LDGS' : ["LD/GS"],'LDGD' : ["LD/GD"], 'LS' : ["LS"],
+                    'LD' : ["LD"], 'GS' : ["GS"], 'GD' : ["GD"]
+                                }
 
 ####EPOCHING BRU####
 

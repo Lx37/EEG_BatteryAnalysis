@@ -70,7 +70,22 @@ print("################## End of Preprocess ##################")
 '''
 
 '''
+
+# Patch for data that have not been cutted around events [from Riham Analysis]
+data_name = patient_info['data_save_dir'] + cfg.data_preproc_path
+data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
+
+data = mne.io.read_raw_fif(data_name, preload=True)
+
+print('DATA : ')
+print(data.info)
+
+utils.cut_preprocessed_sig(data, patient_info, cfg)
+
+
 print("################## Cleaning data " + sujet + " ##################")
+
+ 
 
 data_name = patient_info['data_save_dir'] + cfg.data_preproc_path
 data_name = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed
@@ -80,16 +95,28 @@ data = cleaning.correct_blink_ICA(data, patient_info, cfg, save=save, verbose=ve
 '''
 
 #'''
-print("################## Epoching data " + sujet + " ##################")
+#print("################## Epoching data " + sujet + " ##################")
 
-data_name = patient_info['data_save_dir'] + cfg.data_preproc_path
-data_name_preproc = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_processed #prefix_ICA  # cfg.prefix_processed
-data_name_preproc_ICA = data_name + patient_info['ID_patient'] + '_' + patient_info['protocol'] + cfg.prefix_ICA
+subs_to_epoch = ['OS90']
+all_proto = ['PP', 'LG', 'Resting']
 
-if os.path.exists(data_name_preproc_ICA):
-    fif_name = data_name_preproc_ICA
-elif os.path.exists(data_name_preproc):
-    fif_name = data_name_preproc
+for sub in subs_to_epoch:
+    for proto in all_proto:
 
-data = mne.io.read_raw_fif(fif_name, preload=True)
-data = epoch.get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True)
+        print("################## Epoching data " + sub + proto + " ##################")
+
+        data_name = data_save_dir + cfg.data_preproc_path
+        data_name_preproc = data_name + sub + '_' + proto + cfg.prefix_processed #prefix_ICA  # cfg.prefix_processed
+        data_name_preproc_ICA = data_name + sub + '_' + proto + cfg.prefix_ICA #prefix_ICA  # cfg.prefix_processed
+
+        if os.path.exists(data_name_preproc_ICA):
+            fif_name = data_name_preproc_ICA
+        elif os.path.exists(data_name_preproc):
+            fif_name = data_name_preproc
+        else:
+            continue
+
+        data = mne.io.read_raw_fif(fif_name, preload=True)
+        data = epoch.get_epochs_connectivity(data, sub, proto, data_save_dir, cfg, save=True, verbose=True, plot=True)
+
+#'''

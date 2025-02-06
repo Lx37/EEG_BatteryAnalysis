@@ -15,7 +15,97 @@ logging.basicConfig(filename=logname,level=logging.INFO, format='%(asctime)s - %
 logger = logging.getLogger(__name__)
 
 
-# From Fabrice code
+# Correspond to protocol "Battery" in old scripts
+def redefine_event_PP(new_events, cfg, verbose=True, plot=True):
+    # Redefinition des triggers pour nom apres Music (+1000) et PP apres Noise (non change)
+    events_redef = new_events.copy()
+    nb_name = 42
+    add_trig_PMusic = 1000
+    for idx, val in enumerate(events_redef):
+        if (val[2] in cfg.MusicDio.values() or val[2] in cfg.MusicConvG.values() or val[2] in cfg.MusicConvD.values()):
+            for idx2, val2 in enumerate(events_redef[idx:idx+nb_name+1]):
+                if val2[2] in cfg.TtP.values():
+                    events_redef[idx+idx2][2] += add_trig_PMusic
+
+    # Redifinition of AP triggers that come just before the PP, to take only those in further analysis
+    events_redef_equal = events_redef.copy()
+    add_trig_AP = 2000
+    for idx, val in enumerate(events_redef_equal):
+        if (val[2] in cfg.Pp.values() ):
+            if (events_redef_equal[idx-1][2] in cfg.Ap.values() ):
+                events_redef_equal[idx-1][2] += add_trig_AP
+            elif not (events_redef_equal[idx-1][2] in cfg.Ap.values() ):
+                if (events_redef_equal[idx+1][2] in cfg.Ap.values()):
+                    events_redef_equal[idx+1][2] += add_trig_AP
+                else :
+                     print ('Error no AP before or after PP ??')
+    if verbose:
+        print('Events AFTER changes : ', events_redef_equal)
+    if plot:
+        eventplot = mne.viz.plot_events(events_redef, data.info['sfreq'])
+        eventplot = mne.viz.plot_events(events_redef_equal, data.info['sfreq'])
+
+    return events_redef_equal
+
+def redefine_event_LG(data, patient_info, cfg, verbose=True, plot=True):
+    ########### Renaming of triggers  ###########
+    ### Loading csv
+    csvname = cfg.csvpath + patient_info['ID_patient'] + '.csv'
+    ord = pd.read_csv(csvname, sep=",")
+
+    number = 0
+    ord["block"] = 0
+    ord["LS"] = 0
+
+    for count, x in enumerate(ord["Unnamed: 0"]):
+        #ord["block"][count] = str(number)
+        if x == 1:
+            print(x)
+            print(count)
+            print(number)
+            number = number + 1
+        ord["block"][count] = str(number)
+
+    GS=0
+
+    for i in range(4, len(ord), 5):
+        #print(ord["ISI"][i])
+        #print(ord["Trigger"][i])
+        if ord["Trigger"][i-1] == ord["Trigger"][i]:
+            ord.at[i,"LS"] = 10
+        else :
+            ord.at[i,"LS"] = 20
+        BLnr = ord["block"][i]
+        print(BLnr)
+        #print(ord["Unnamed: 0"]==4)
+        #print(ord["block"]==BLnr)
+        GS = ord[(ord["Unnamed: 0"]==5) & (ord["block"]==BLnr)]["Trigger"].item()
+        print(GS)
+        #ord["Trigger"][i]=ord["Trigger"][i]+"_GS"
+        if GS == ord["Trigger"][i]:
+            ord["LS"][i]= ord["LS"][i]+1
+        else:
+            ord["LS"][i]= ord["LS"][i]+2
+
+    string = ord["LS"]
+
+    #### Finding events
+    events = mne.find_events(data, stim_channel='STI 014')
+
+    new_events = events.copy()
+    for (x,y), value in np.ndenumerate(events):
+        if y==2:
+            new_value = string[x]
+            print(new_value)
+            if new_value  != '':
+              new_events[x,y] = new_value
+
+    if plot:
+        eventplot = mne.viz.plot_events(new_events, data.info['sfreq'])
+
+    return new_events
+
+
 def get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True):
 
     # if patient_info['protocol'] == 'WORDS':
@@ -28,7 +118,7 @@ def get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True):
 
     ########### Renaming of EGI-loaded triggers  ###########
     
-    if patient_info['EEG_system'] == 'EGI':
+    if patient_info['EEG_system'] == 'EGI' and  patient_info['protocol'] == 'PP':
         
         StimNpy = patient_info['data_save_dir'] + cfg.stimDict_path + SubName + '_' + patient_info['protocol'] + cfg.prefix_stimDict
         print(StimNpy)
@@ -56,10 +146,15 @@ def get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True):
                 if new_value != 'IEND' and new_value  != 'rest' and new_value != 'Code' and new_value != 'Rest' and new_value != 'star':
                     new_events[x,y] = new_value
 
-        if verbose:
-            print('Events AFTER changes : ', new_events)
-        if plot:
-            eventplot = mne.viz.plot_events(new_events, data.info['sfreq'])
+        
+        events_redef = redefine_event_PP(new_events, cfg, verbose=True, plot=True)
+        events_id = cfg.events_id_PP
+        epochs_reject = cfg.epochs_reject_PP
+    
+    elif patient_info['protocol'] == 'LG':
+        events_redef = redefine_event_LG(data, patient_info, cfg, verbose=True, plot=True)
+        events_id = cfg.events_id_LG
+        epochs_reject = cfg.epochs_reject_LG
 
 
     ########### Segmetation and rejection ###########
@@ -67,27 +162,15 @@ def get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True):
     baseline = cfg.erp_baseline
     detrend = cfg.erp_detrend # Either 0 or 1, the order of the detrending. 0 is a constant (DC) detrend, 1 is a linear detrend.
 
-    if patient_info['protocol'] == 'PP':
-        events_id = cfg.events_id_PP
-        epochs_reject = cfg.epochs_reject_PP
-        
-    elif patient_info['protocol'] == 'WORDS':
-        events_id = cfg.events_id_WORDS
-        epochs_reject = cfg.epochs_reject_WORDS
-    
-    
-    #TODO other protocols
-    
-
 
     picks_eeg_eog = mne.pick_types(data.info, eeg=True, eog=True, exclude=[]) #eeg and eog chan for rejection
     #picks_eeg_eog = mne.pick_types(data.info, eeg=True, eog=True, selection =['Cz', 'E55', 'E62', 'E106', 'E7', 'E80', 'E31', 'E79', 'E54', 'E61', 'E78']) #FOR PATIENT TpTP
-    epochs = mne.Epochs(data, events=new_events, event_id=events_id, tmin=tmin, tmax=tmax,
+    epochs = mne.Epochs(data, events=events_redef, event_id=events_id, tmin=tmin, tmax=tmax,
                         baseline=baseline, detrend=detrend, picks=picks_eeg_eog, on_missing='warn',
                         reject=epochs_reject, preload=True)
     if verbose:
         print('epochs : ', epochs.info)
-        print('Number of events :', new_events.size/3)
+        print('Number of events :', events_redef.size/3)
         #print('Number of redefined events :', events_redef_equal.size)
         print('Number of epochs :', len(epochs))
 

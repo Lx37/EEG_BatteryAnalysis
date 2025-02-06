@@ -196,7 +196,8 @@ def preprocess(patient_info, cfg, save=False, verbose=True, plot=True):
     try:
         utils.update_excel_bad_chan(patient_info, data.info['bads'])
     except:
-        print("No way to update excel file with bad channels. Maybe you're on windows and the file is open?")  
+        print("No way to update excel file with bad channels. Maybe you're on windows and the file is open?")
+        exit() 
     patient_info['bad_sub_chan'] = data.info['bads']
 
     if patient_info['EEG_system'] == 'EGI': #exclusion of non-analysed channels
