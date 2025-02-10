@@ -95,10 +95,10 @@ data = cleaning.correct_blink_ICA(data, patient_info, cfg, save=save, verbose=ve
 '''
 
 #'''
-#print("################## Epoching data " + sujet + " ##################")
+print("################## Epoching data " + sujet + " ##################")
 
-subs_to_epoch = ['OS90']
-all_proto = ['PP', 'LG', 'Resting']
+subs_to_epoch = ['AD94']
+all_proto = ['LG']
 
 for sub in subs_to_epoch:
     for proto in all_proto:

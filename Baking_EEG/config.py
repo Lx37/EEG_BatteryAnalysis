@@ -250,7 +250,7 @@ con_freq_bands = {"delta": [0.5, 4.0],
                 "theta": [4.0, 8.0],
                 "alpha": [8.0, 13.0],
                 "beta": [13.0, 30.0],
-                "sigma": [30.0, 40.0],}
+                "gamma": [30.0, 40.0],}
 #fmin = 4
 #fmax = 8
 con_tmin = 0.0  # exclude the baseline period

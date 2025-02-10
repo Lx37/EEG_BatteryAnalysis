@@ -21,7 +21,7 @@ from Baking_EEG import _3_epoch as epoch
 ######################################
 # Indicate the protocol and subject you're working on + data directory and excel file with patients info
 protocol = 'LG' # 'PP' or 'LG' or 'Resting' (TODO: 'Words' or 'Arythmetic')
-sujet = 'XL89'#'AD94' #LC97 #AG42
+sujet = 'AD94'#'AD94' #LC97 #AG42
 # Set the parameters for the preprocessing : save data or not, verbose or not, plot or not (True or False)
 save = True
 verbose = True

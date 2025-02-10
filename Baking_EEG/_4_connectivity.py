@@ -11,7 +11,6 @@ import xarray as xr
 from mne_connectivity.viz import plot_connectivity_circle
 import mne
 
-import config as cfg
 
 ## logging info ###
 import logging
@@ -33,15 +32,19 @@ def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=
     if selected_chans != 'All':
         n_chans = len(selected_chans)
         df_chan = pd.DataFrame(np.nan, index=selected_chans, columns=selected_chans)
+        chans_names = selected_chans.copy()
     else:
         fif_fname = f'{data_save_dir}{cfg.data_con_path}{subs[0]}_{proto}{cfg.prefix_epo_conn}'  #pas top clean, on suppose que tous les sujets ont les memes canaux
         print('################fif_fname : ', fif_fname)
         #TODO set VREF as good ?
         epochs = mne.read_epochs(fif_fname, proj=False, verbose=True, preload=True)#.pick_types(eeg=True) 
+        print('epochs info : ', epochs.info)
         chans_names = epochs.ch_names
         n_chans = len(chans_names) 
         print('nb chan : ', n_chans)
         print('###################chans_names : ', chans_names)
+        print('###################EGI_con_chan : ', cfg.EGI_con_chan)
+        print('nb chan EGI_con_chan : ', len(cfg.EGI_con_chan))
         assert chans_names == cfg.EGI_con_chan, "All chan for this sub are not consistent" #check channel consistency over subjects   
         df_chan = pd.DataFrame(np.nan, index=chans_names, columns=chans_names)
 
@@ -113,7 +116,7 @@ def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=
                     df_ROI_sub.to_excel(df_Roi_sub_name)
                     
                 #plot conn ROI for each subjet
-                ROI_sub_fig, ROI_sub_ax = plot_connectivity_circle(df_ROI_sub.to_numpy(), All_ROI.keys(), title=f'{sub} {proto} Connectivity {k} band', vmin=cfg.con_vmin, vmax=cfg.con_vmax)
+                ROI_sub_fig, ROI_sub_ax = plot_connectivity_circle(df_ROI_sub.to_numpy(), All_ROI.keys(), title=f'{sub} {proto} Connectivity {k} band', vmin=cfg.con_vmin, vmax=cfg.con_vmax,fontsize_title=12, fontsize_names=10)                
                 fname_sub_fig =  f'{data_save_dir}{cfg.result_con_path}/{sub}/{sub}_{proto}_{cfg.con_method}_{k}_conData_ROI.png'
                 ROI_sub_fig.savefig(fname_sub_fig, facecolor='black') 
                 
@@ -144,7 +147,7 @@ def connectivity_overSubs(subs, data_save_dir, selected_chans, proto, cfg, save=
             df_chan.to_excel(df_chan_name)
             
             print(df_ROI.to_numpy().shape)
-            ROI_fig, ROI_ax = plot_connectivity_circle(df_ROI.to_numpy(), All_ROI.keys(), title=f'{proto} AllSub Connectivity {k} band', vmin=cfg.con_vmin, vmax=cfg.con_vmax)
+            ROI_fig, ROI_ax = plot_connectivity_circle(df_ROI.to_numpy(), All_ROI.keys(), title=f'{proto} AllSub Connectivity {k} band', vmin=cfg.con_vmin, vmax=cfg.con_vmax, fontsize_title=12, fontsize_names=10)
             fname_fig = f'{data_save_dir}{cfg.result_con_path}/{proto}_{cfg.con_method}_{k}_allSub_ROI.png'
             ROI_fig.savefig(fname_fig, facecolor='black') 
         
