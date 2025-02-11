@@ -38,6 +38,10 @@ elif user == 'adminlocal':
     raw_data_dir = 'C:\\Users\\adminlocal\\Desktop\\ConnectDoc\\Data\\data_EEG_battery_2019-\\'
     xls_patients_info = 'C:\\Users\\adminlocal\\Desktop\\ConnectDoc\\EEG_2025_CAP_FPerrin_Vera\\ConnectDoc_patients_df.csv'
     data_save_dir = 'C:\\Users\\adminlocal\\Desktop\\ConnectDoc\\EEG_2025_CAP_FPerrin_Vera\\Analysis_Baking_EEG_Vera\\'
+elif user == 'tom':
+    raw_data_dir = '/Users/tom/Desktop/ENSC/2A/PII/Tom/raw_eeg_data/'  
+    xls_patients_info = '/Users/tom/Desktop/ENSC/2A/PII/Tom/raw_eeg_data/ConnectDoc_patients_df.csv'  
+    data_save_dir = '/Users/tom/Desktop/ENSC/2A/PII/Tom/Baking_EEG_data/' 
 
 
 ############################################################################
