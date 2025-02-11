@@ -20,7 +20,7 @@ from Baking_EEG import _3_epoch as epoch
 ############ Your part ! #############
 ######################################
 # Indicate the protocol and subject you're working on + data directory and excel file with patients info
-protocol = 'LG' # 'PP' or 'LG' or 'Resting' (TODO: 'Words' or 'Arythmetic')
+protocol = 'PP' # 'PP' or 'LG' or 'Resting' (TODO: 'Words' or 'Arythmetic')
 sujet = 'AD94'#'AD94' #LC97 #AG42
 # Set the parameters for the preprocessing : save data or not, verbose or not, plot or not (True or False)
 save = True
@@ -92,4 +92,10 @@ elif os.path.exists(data_name_preproc):
     fif_name = data_name_preproc
 
 data = mne.io.read_raw_fif(fif_name, preload=True)
+
+events = mne.find_events(data, stim_channel='STI 014')
+eventplot = mne.viz.plot_events(events, data.info['sfreq'])
+
 data = epoch.get_ERP_epochs(data, patient_info, cfg, save=True, verbose=True, plot=True)
+
+print(data.info)
