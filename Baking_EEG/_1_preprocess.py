@@ -8,6 +8,11 @@ from Baking_EEG import utils
 ## logging info ###
 import logging
 from datetime import datetime
+
+log_dir = './logs/'  
+if not os.path.exists(log_dir):  
+    os.makedirs(log_dir) 
+    
 logname = './logs/' + datetime.now().strftime('log_%Y-%m-%d.log')
 logging.basicConfig(filename=logname,level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
 logger = logging.getLogger(__name__)
