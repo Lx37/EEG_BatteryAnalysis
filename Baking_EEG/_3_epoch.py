@@ -47,9 +47,15 @@ def redefine_event_PP(new_events, cfg, verbose=True, plot=True):
 def redefine_event_LG(data, patient_info, cfg, verbose=True, plot=True):
     ########### Renaming of triggers  ###########
     ### Loading csv
-    csvname = cfg.csvpath + patient_info['ID_patient'] + '.csv'
-    ord = pd.read_csv(csvname, sep=",")
-
+    #csvname = cfg.csvpath + patient_info['ID_patient'] + '.csv'
+    csvname = patient_info['raw_data_dir'] + patient_info['ID_patient'] + '/Stimulations/local-global/playframe.csv'
+    try:
+        ord = pd.read_csv(csvname, sep=",")
+    except:
+        print("Can't find playframe excel file Local Global protocol for patient : ", patient_info['ID_patient'])
+        print('CSV file : ', csvname)
+        exit() 
+        
     number = 0
     ord["block"] = 0
     ord["LS"] = 0
